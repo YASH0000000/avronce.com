@@ -42,7 +42,7 @@ export default async function HomePage() {
               <span>New Arrivals 2026 • Made in India</span>
             </div>
 
-            <h1 className="font-serif text-4xl sm:text-6xl lg:text-7xl font-light text-white tracking-tight leading-[1.1]">
+            <h1 className="font-serif text-3xl sm:text-5xl lg:text-7xl font-light text-white tracking-tight leading-[1.15] break-words">
               Everyday Luxury Clothing. <br />
               <span className="italic font-normal">Crafted to Last.</span>
             </h1>

@@ -42,12 +42,17 @@ export function Navbar() {
 
       {/* 2. Main Header: LOGO FIRST */}
       <header className="sticky top-0 z-40 w-full bg-zinc-950/95 backdrop-blur-md border-b border-zinc-800/80 transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-6">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-18 sm:h-20 flex items-center justify-between gap-2 sm:gap-6">
           
           {/* LEFT: LOGO FIRST */}
-          <div className="flex items-center gap-8">
-            <Link href="/" className="flex items-center gap-3 group focus:outline-none" aria-label="Avronce Home">
-              <Logo variant="combined" size="md" />
+          <div className="flex items-center gap-6 lg:gap-8 min-w-0">
+            <Link href="/" className="flex items-center gap-2 group focus:outline-none shrink-0" aria-label="Avronce Home">
+              <div className="hidden sm:block">
+                <Logo variant="combined" size="md" />
+              </div>
+              <div className="block sm:hidden">
+                <Logo variant="combined" size="sm" />
+              </div>
             </Link>
 
             {/* Desktop Navigation Links */}
@@ -66,7 +71,7 @@ export function Navbar() {
           </div>
 
           {/* RIGHT: Search, Track Order, Cart, Mobile Toggle */}
-          <div className="flex items-center gap-2 sm:gap-5">
+          <div className="flex items-center gap-1 sm:gap-4 shrink-0">
             
             {/* Desktop Quick Links */}
             <Link

@@ -85,7 +85,7 @@ export function ProductList({
                 : 'bg-zinc-900/80 text-zinc-400 hover:text-white border border-zinc-800'
             }`}
           >
-            All Pieces ({initialProducts.length})
+            All Products ({initialProducts.length})
           </button>
           {categories.map((cat) => (
             <button
@@ -110,7 +110,7 @@ export function ProductList({
             <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Filter pieces..."
+              placeholder="Search clothing..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-zinc-900 border border-zinc-800 text-xs text-white pl-8 pr-7 py-2 rounded-sm focus:outline-none focus:border-zinc-500 placeholder:text-zinc-500"

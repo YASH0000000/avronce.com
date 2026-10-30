@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
-import { Logo } from '@/components/brand/Logo';
 import { 
   Search, 
   Package, 
@@ -17,26 +17,27 @@ import {
   ArrowRight
 } from 'lucide-react';
 
-export default function TrackOrderPage() {
-  const [query, setQuery] = useState('');
+function TrackOrderContent() {
+  const searchParams = useSearchParams();
+  const initialOrderQuery = searchParams.get('order') || '';
+
+  const [query, setQuery] = useState(initialOrderQuery);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [order, setOrder] = useState<any>(null);
   const [orderItems, setOrderItems] = useState<any[]>([]);
 
-  const handleTrack = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!query.trim()) return;
+  const performSearch = async (targetQuery: string) => {
+    if (!targetQuery.trim()) return;
 
     setLoading(true);
     setErrorMsg('');
     setOrder(null);
     setOrderItems([]);
 
-    const clean = query.trim();
+    const clean = targetQuery.trim();
 
     try {
-      // Search by order_number or phone or email
       let supabaseQuery = supabase.from('orders').select('*');
 
       if (clean.toUpperCase().startsWith('AVR-')) {
@@ -53,14 +54,13 @@ export default function TrackOrderPage() {
         .maybeSingle();
 
       if (error || !data) {
-        setErrorMsg('No order found matching your inquiry. Please check your order reference number or mobile number.');
+        setErrorMsg('No order found matching your search. Please check your Order ID (AVR-...) or 10-digit mobile number.');
         setLoading(false);
         return;
       }
 
       setOrder(data);
 
-      // Fetch items for this order
       const { data: items } = await supabase
         .from('order_items')
         .select('*')
@@ -74,6 +74,17 @@ export default function TrackOrderPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    if (initialOrderQuery) {
+      performSearch(initialOrderQuery);
+    }
+  }, [initialOrderQuery]);
+
+  const handleTrack = (e: React.FormEvent) => {
+    e.preventDefault();
+    performSearch(query);
   };
 
   const getStatusStep = (status: string) => {
@@ -97,14 +108,14 @@ export default function TrackOrderPage() {
       
       {/* Header */}
       <div className="text-center space-y-3">
-        <span className="text-xs uppercase tracking-[0.3em] text-zinc-400 font-mono">
-          Atelier Logistics
+        <span className="text-xs uppercase tracking-[0.25em] text-zinc-400 font-mono">
+          Order Status
         </span>
-        <h1 className="font-serif text-3xl sm:text-4xl uppercase tracking-wider text-white">
-          Track Your Acquisition
+        <h1 className="font-serif text-3xl sm:text-4xl text-white">
+          Track Your Order
         </h1>
         <p className="text-xs sm:text-sm text-zinc-400 max-w-md mx-auto">
-          Enter your Avronce order number (e.g. <strong className="text-zinc-200 font-mono">AVR-...</strong>) or mobile number to track shipment progress.
+          Enter your Avronce Order ID (e.g. <strong className="text-zinc-200 font-mono">AVR-...</strong>) or 10-digit mobile number to view live delivery status.
         </p>
       </div>
 
@@ -117,16 +128,16 @@ export default function TrackOrderPage() {
             required
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Order ID (e.g. AVR-261030-4921) or phone number"
+            placeholder="Order ID (e.g. AVR-261030-5713) or mobile number"
             className="w-full bg-zinc-900 border border-zinc-800 text-xs text-white pl-10 pr-4 py-3.5 rounded-sm focus:outline-none focus:border-white font-mono placeholder:font-sans placeholder:text-zinc-500"
           />
         </div>
         <button
           type="submit"
           disabled={loading}
-          className="px-6 py-3.5 bg-white text-zinc-950 font-medium text-xs uppercase tracking-widest hover:bg-zinc-200 transition-colors rounded-sm disabled:opacity-50"
+          className="px-6 py-3.5 bg-white text-zinc-950 font-semibold text-xs uppercase tracking-wider hover:bg-zinc-200 transition-colors rounded-sm disabled:opacity-50"
         >
-          {loading ? 'Locating...' : 'Track'}
+          {loading ? 'Searching...' : 'Track'}
         </button>
       </form>
 
@@ -145,8 +156,8 @@ export default function TrackOrderPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-zinc-800">
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs uppercase tracking-widest text-zinc-400">Order Reference</span>
-                <span className="px-2 py-0.5 bg-zinc-800 text-white rounded text-xs font-mono font-bold">
+                <span className="text-xs uppercase tracking-wider text-zinc-400">Order ID:</span>
+                <span className="px-2.5 py-1 bg-zinc-800 text-white rounded text-xs font-mono font-bold">
                   {order.order_number}
                 </span>
               </div>
@@ -157,8 +168,8 @@ export default function TrackOrderPage() {
 
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-xs uppercase tracking-widest font-medium text-emerald-400">
-                {order.status === 'processing' ? 'Atelier Inspection & Prep' : order.status}
+              <span className="text-xs uppercase tracking-wider font-semibold text-emerald-400">
+                {order.status === 'processing' ? 'Order Confirmed & Preparing Dispatch' : order.status}
               </span>
             </div>
           </div>
@@ -166,19 +177,19 @@ export default function TrackOrderPage() {
           {/* Stepper Progress */}
           <div className="space-y-4">
             <div className="grid grid-cols-4 gap-2 text-center text-xs">
-              <div className={currentStep >= 1 ? 'text-white' : 'text-zinc-600'}>
+              <div className={currentStep >= 1 ? 'text-white font-medium' : 'text-zinc-600'}>
                 <span className="font-mono text-[10px] block text-zinc-500">01</span>
                 <span>Confirmed</span>
               </div>
-              <div className={currentStep >= 2 ? 'text-white' : 'text-zinc-600'}>
+              <div className={currentStep >= 2 ? 'text-white font-medium' : 'text-zinc-600'}>
                 <span className="font-mono text-[10px] block text-zinc-500">02</span>
-                <span>Atelier QC</span>
+                <span>Packed</span>
               </div>
-              <div className={currentStep >= 3 ? 'text-white' : 'text-zinc-600'}>
+              <div className={currentStep >= 3 ? 'text-white font-medium' : 'text-zinc-600'}>
                 <span className="font-mono text-[10px] block text-zinc-500">03</span>
-                <span>Air Dispatch</span>
+                <span>Shipped</span>
               </div>
-              <div className={currentStep >= 4 ? 'text-white' : 'text-zinc-600'}>
+              <div className={currentStep >= 4 ? 'text-white font-medium' : 'text-zinc-600'}>
                 <span className="font-mono text-[10px] block text-zinc-500">04</span>
                 <span>Delivered</span>
               </div>
@@ -186,16 +197,16 @@ export default function TrackOrderPage() {
 
             <div className="relative h-1.5 bg-zinc-800 rounded-full overflow-hidden">
               <div
-                className="h-full bg-white transition-all duration-700"
+                className="h-full bg-emerald-400 transition-all duration-700"
                 style={{ width: `${(currentStep / 4) * 100}%` }}
               />
             </div>
           </div>
 
-          {/* Garments in this order */}
+          {/* Items in this order */}
           <div className="space-y-4 pt-4 border-t border-zinc-800">
-            <h4 className="text-xs font-semibold uppercase tracking-widest text-zinc-300">
-              Garments in Shipment
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-zinc-300">
+              Items in Your Package
             </h4>
             <div className="divide-y divide-zinc-800/80">
               {orderItems.map((item) => (
@@ -214,12 +225,12 @@ export default function TrackOrderPage() {
                     )}
                     <div>
                       <p className="text-xs font-medium text-white">{item.product_name}</p>
-                      <p className="text-[11px] text-zinc-400 font-mono">
-                        Size: {item.size} • Shade: {item.color_name} • Qty: {item.quantity}
+                      <p className="text-[11px] text-zinc-400">
+                        Size: {item.size} • Color: {item.color_name} • Qty: {item.quantity}
                       </p>
                     </div>
                   </div>
-                  <div className="text-xs font-medium text-white">
+                  <div className="text-xs font-semibold text-white">
                     ₹{Number(item.total).toLocaleString('en-IN')}
                   </div>
                 </div>
@@ -232,7 +243,7 @@ export default function TrackOrderPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4 border-t border-zinc-800 text-xs text-zinc-400">
               <div className="space-y-1">
                 <span className="uppercase tracking-wider font-semibold text-zinc-300 block mb-1">
-                  Recipient
+                  Delivery To
                 </span>
                 <p className="text-white font-medium">{order.shipping_address.fullName}</p>
                 <p>Phone: {order.shipping_address.phone}</p>
@@ -241,7 +252,7 @@ export default function TrackOrderPage() {
 
               <div className="space-y-1">
                 <span className="uppercase tracking-wider font-semibold text-zinc-300 block mb-1">
-                  Shipping Destination
+                  Delivery Address
                 </span>
                 <p>{order.shipping_address.addressLine1}</p>
                 {order.shipping_address.addressLine2 && <p>{order.shipping_address.addressLine2}</p>}
@@ -254,19 +265,19 @@ export default function TrackOrderPage() {
           {/* Payment info */}
           <div className="p-4 bg-zinc-950 border border-zinc-800 rounded-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
             <div>
-              <span className="text-zinc-500 uppercase tracking-wider block text-[10px]">Payment Information</span>
+              <span className="text-zinc-500 uppercase tracking-wider block text-[10px]">Payment Summary</span>
               <p className="text-white font-medium mt-0.5">
-                Paid ₹{Number(order.total_amount).toLocaleString('en-IN')} via Razorpay Test Gateway
+                Paid ₹{Number(order.total_amount).toLocaleString('en-IN')} via Razorpay
               </p>
               {order.razorpay_payment_id && (
-                <p className="text-[11px] font-mono text-zinc-400">Ref: {order.razorpay_payment_id}</p>
+                <p className="text-[11px] font-mono text-zinc-400">Transaction ID: {order.razorpay_payment_id}</p>
               )}
             </div>
             <Link
               href={`/order-success/${order.id}`}
-              className="text-xs text-white hover:underline uppercase tracking-wider inline-flex items-center gap-1"
+              className="text-xs text-white hover:underline uppercase tracking-wider inline-flex items-center gap-1 font-semibold"
             >
-              <span>View Invoice</span>
+              <span>View Order Receipt</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -275,5 +286,17 @@ export default function TrackOrderPage() {
       )}
 
     </div>
+  );
+}
+
+export default function TrackOrderPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-[50vh] flex items-center justify-center text-zinc-400 text-xs uppercase tracking-widest">
+        Loading Order Tracker...
+      </div>
+    }>
+      <TrackOrderContent />
+    </Suspense>
   );
 }

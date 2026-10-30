@@ -234,15 +234,15 @@ export default function CheckoutPage() {
     return (
       <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-6 text-center">
         <Logo variant="combined" size="lg" className="mb-8" />
-        <h2 className="font-serif text-2xl tracking-wider mb-3">Your Bag Is Empty</h2>
+        <h2 className="font-serif text-2xl tracking-wider mb-3">Your Cart Is Empty</h2>
         <p className="text-zinc-400 text-sm max-w-md mb-8">
-          You don&apos;t have any garments selected. Explore the atelier catalog to curate your wardrobe.
+          You don&apos;t have any items in your cart. Explore our collection to get started.
         </p>
         <Link
           href="/shop"
-          className="px-8 py-3.5 bg-white text-zinc-950 font-medium text-xs uppercase tracking-[0.2em] hover:bg-zinc-200 transition-colors"
+          className="px-8 py-3.5 bg-white text-zinc-950 font-semibold text-xs uppercase tracking-[0.2em] hover:bg-zinc-200 transition-colors rounded-sm"
         >
-          Explore Collection
+          Continue Shopping
         </Link>
       </div>
     );
@@ -254,14 +254,14 @@ export default function CheckoutPage() {
       {/* Checkout Minimal Header */}
       <div className="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-md sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          <Link href="/shop" className="text-xs uppercase tracking-widest text-zinc-400 hover:text-white flex items-center gap-2">
+          <Link href="/shop" className="text-xs uppercase tracking-wider text-zinc-400 hover:text-white flex items-center gap-2">
             <ArrowLeft className="w-4 h-4" />
-            <span>Return to Store</span>
+            <span>Back to Shopping</span>
           </Link>
           <Logo variant="combined" size="md" />
           <div className="flex items-center gap-1.5 text-xs text-zinc-400">
             <Lock className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="hidden sm:inline">256-Bit SSL Encryption</span>
+            <span className="hidden sm:inline">256-Bit Secure SSL</span>
           </div>
         </div>
       </div>
@@ -350,7 +350,7 @@ export default function CheckoutPage() {
             {/* Shipping Address */}
             <div className="space-y-4 pt-4 border-t border-zinc-800">
               <h2 className="font-serif text-lg tracking-wider uppercase text-white flex items-center gap-2">
-                <span>2. Atelier Delivery Address</span>
+                <span>2. Delivery Address (India)</span>
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="sm:col-span-2">
@@ -445,7 +445,7 @@ export default function CheckoutPage() {
                 ) : (
                   <>
                     <CreditCard className="w-4 h-4" />
-                    <span>Pay ₹{totalAmount.toLocaleString('en-IN')} with Razorpay</span>
+                    <span>Pay ₹{totalAmount.toLocaleString('en-IN')} with Razorpay (UPI, Cards, NetBanking)</span>
                   </>
                 )}
               </button>
@@ -458,12 +458,12 @@ export default function CheckoutPage() {
                 className="w-full py-3 bg-zinc-900 border border-amber-500/40 hover:border-amber-400 text-amber-300 font-medium text-xs uppercase tracking-widest flex items-center justify-center gap-2 rounded-sm transition-colors"
               >
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>Instant Test-Mode Simulation (Direct Approval)</span>
+                <span>Instant Test Payment (Demo Simulation)</span>
               </button>
 
-              <div className="flex items-center justify-center gap-2 text-[11px] text-zinc-500 pt-2">
+              <div className="flex items-center justify-center gap-2 text-[11px] text-zinc-400 pt-2 text-center">
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span>Authorized Razorpay Merchant • Complies with RBI Payment Aggregator Guidelines</span>
+                <span>100% Safe & Secure Checkout • Supports Google Pay, PhonePe, Paytm, Visa, RuPay & NetBanking</span>
               </div>
             </div>
 

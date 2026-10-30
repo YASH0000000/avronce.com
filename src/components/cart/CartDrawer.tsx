@@ -62,7 +62,7 @@ export function CartDrawer() {
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-5 border-b border-zinc-800">
             <div className="flex items-center gap-2">
-              <span className="font-serif text-lg tracking-[0.2em] uppercase font-light">Shopping Bag</span>
+              <span className="font-serif text-lg tracking-[0.1em] uppercase font-light">Shopping Cart</span>
               <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300 font-mono">
                 {items.reduce((s, i) => s + i.quantity, 0)}
               </span>
@@ -70,7 +70,7 @@ export function CartDrawer() {
             <button
               onClick={closeCart}
               className="p-2 text-zinc-400 hover:text-white rounded-full hover:bg-zinc-800 transition-colors"
-              aria-label="Close Bag"
+              aria-label="Close Cart"
             >
               <X className="w-5 h-5" />
             </button>
@@ -80,13 +80,13 @@ export function CartDrawer() {
           <div className="px-6 py-3 bg-zinc-900/70 border-b border-zinc-800 text-xs">
             {amountNeeded > 0 ? (
               <p className="text-zinc-300 mb-1.5 flex items-center justify-between">
-                <span>Add <strong className="text-white font-medium">₹{amountNeeded.toLocaleString('en-IN')}</strong> for free shipping</span>
+                <span>Add <strong className="text-white font-medium">₹{amountNeeded.toLocaleString('en-IN')}</strong> more for Free Delivery across India</span>
                 <span className="text-zinc-400">{progressPercent}%</span>
               </p>
             ) : (
               <p className="text-emerald-400 font-medium mb-1.5 flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>You unlocked complimentary express shipping!</span>
+                <span>🎉 You unlocked Free Express Delivery across India!</span>
               </p>
             )}
             <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
@@ -104,15 +104,15 @@ export function CartDrawer() {
                 <div className="w-16 h-16 rounded-full border border-zinc-800 flex items-center justify-center text-zinc-500 mb-4">
                   <Tag className="w-6 h-6" />
                 </div>
-                <h3 className="font-serif text-lg tracking-wider mb-2">Your Bag Is Empty</h3>
+                <h3 className="font-serif text-lg tracking-wider mb-2">Your Cart Is Empty</h3>
                 <p className="text-xs text-zinc-400 max-w-xs mb-6">
-                  Discover our architectural tailoring, selvedge denim, and heavyweight essentials.
+                  Explore our premium daily essentials, selvedge denim jackets, shirts, and tailored trousers.
                 </p>
                 <button
                   onClick={closeCart}
-                  className="px-6 py-3 bg-white text-zinc-950 text-xs tracking-widest uppercase font-medium hover:bg-zinc-200 transition-colors"
+                  className="px-6 py-3 bg-white text-zinc-950 text-xs tracking-widest uppercase font-semibold hover:bg-zinc-200 transition-colors"
                 >
-                  Explore Collection
+                  Start Shopping
                 </button>
               </div>
             ) : (
@@ -264,9 +264,9 @@ export function CartDrawer() {
                   <ArrowRight className="w-4 h-4" />
                 </Link>
                 
-                <div className="flex items-center justify-center gap-1.5 text-[11px] text-zinc-500 text-center">
-                  <ShieldCheck className="w-3.5 h-3.5 text-zinc-400" />
-                  <span>Secure 256-Bit SSL Encryption • Razorpay Protected</span>
+                <div className="flex items-center justify-center gap-1.5 text-[11px] text-zinc-400 text-center">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>100% Secure Checkout • UPI, Google Pay, PhonePe & Cards</span>
                 </div>
               </div>
 

@@ -74,7 +74,7 @@ export default function OrderSuccessPage() {
     return (
       <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-6">
         <Logo variant="combined" size="md" className="animate-pulse mb-4" />
-        <p className="text-xs uppercase tracking-widest text-zinc-400">Verifying Acquisition...</p>
+        <p className="text-xs uppercase tracking-widest text-zinc-400">Loading Your Order...</p>
       </div>
     );
   }
@@ -101,21 +101,21 @@ export default function OrderSuccessPage() {
             <CheckCircle2 className="w-8 h-8" />
           </div>
 
-          <span className="text-xs font-mono uppercase tracking-[0.25em] text-emerald-400">
-            Payment Confirmed • Razorpay Test Mode
+          <span className="text-xs font-mono uppercase tracking-[0.2em] text-emerald-400 font-semibold">
+            Order Confirmed • Payment Successful
           </span>
 
           <h1 className="font-serif text-3xl sm:text-4xl font-normal text-white">
-            Thank you for your acquisition.
+            Thank You! Your Order is Confirmed.
           </h1>
 
-          <p className="text-xs text-zinc-400 max-w-md mx-auto leading-relaxed">
-            Your order reference is <strong className="text-white font-mono">{order?.order_number || orderId}</strong>. A confirmation and tax invoice have been dispatched to <span className="text-zinc-200">{order?.customer_email || 'your email'}</span>.
+          <p className="text-xs text-zinc-300 max-w-md mx-auto leading-relaxed">
+            Your Order ID is <strong className="text-white font-mono">{order?.order_number || orderId}</strong>. We have sent the confirmation and receipt to <span className="text-white font-medium">{order?.customer_email || 'your email'}</span>.
           </p>
 
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-400 font-mono">
-            <Calendar className="w-3.5 h-3.5 text-zinc-500" />
-            <span>Estimated Atelier Dispatch: In 2 Business Days</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-300 font-mono">
+            <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Estimated Delivery: 3 to 5 Business Days across India</span>
           </div>
         </div>
 

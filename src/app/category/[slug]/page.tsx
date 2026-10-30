@@ -42,10 +42,10 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-transparent" />
         
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 w-full">
-          <span className="text-xs uppercase tracking-[0.3em] text-zinc-400 font-mono">
-            Category Focus
+          <span className="text-xs uppercase tracking-[0.25em] text-zinc-400 font-mono">
+            Collection
           </span>
-          <h1 className="font-serif text-3xl sm:text-5xl uppercase tracking-wider text-white mt-1">
+          <h1 className="font-serif text-3xl sm:text-5xl text-white mt-1">
             {currentCategory.name}
           </h1>
           {currentCategory.description && (

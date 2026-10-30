@@ -80,7 +80,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
           )}
           {product.compare_at_price && product.compare_at_price > product.price && (
             <span className="bg-zinc-950/80 backdrop-blur-md text-white text-[10px] uppercase font-medium tracking-wider px-2 py-0.5 border border-zinc-700/60">
-              Seasonal Offer
+              Special Price
             </span>
           )}
         </div>
@@ -154,7 +154,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
               />
             ))}
             <span className="text-[10px] text-zinc-500 ml-1">
-              {uniqueColors.length} shades
+              {uniqueColors.length} colors
             </span>
           </div>
         )}
@@ -174,17 +174,17 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
         {/* Mobile Quick Add Button */}
         <button
           onClick={(e) => handleQuickAdd(e, currentVariant)}
-          className="mt-3 lg:hidden w-full py-2 bg-zinc-900 border border-zinc-800 text-xs uppercase tracking-wider font-medium text-zinc-200 flex items-center justify-center gap-1.5 active:bg-zinc-800 transition-colors"
+          className="mt-3 lg:hidden w-full py-2 bg-zinc-900 border border-zinc-800 text-xs uppercase tracking-wider font-semibold text-zinc-200 flex items-center justify-center gap-1.5 active:bg-zinc-800 transition-colors rounded-sm"
         >
           {addedAnimation ? (
             <>
               <Check className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Added to Bag</span>
+              <span>Added to Cart</span>
             </>
           ) : (
             <>
               <Plus className="w-3.5 h-3.5" />
-              <span>Add to Bag ({currentVariant?.size || 'M'})</span>
+              <span>Add to Cart ({currentVariant?.size || 'M'})</span>
             </>
           )}
         </button>

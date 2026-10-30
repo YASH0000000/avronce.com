@@ -19,16 +19,16 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16 space-y-10">
       
-      {/* Editorial Header */}
+      {/* Header */}
       <div className="space-y-3 max-w-2xl border-b border-zinc-800 pb-8">
-        <span className="text-xs uppercase tracking-[0.3em] text-zinc-400 font-mono">
-          Atelier Roster
+        <span className="text-xs uppercase tracking-[0.25em] text-zinc-400 font-mono">
+          Our Collection
         </span>
         <h1 className="font-serif text-3xl sm:text-5xl font-light text-white tracking-tight">
-          Ready-to-Wear Catalog
+          Shop All Clothing
         </h1>
-        <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed font-light">
-          An ongoing curation of architectural outerwear, heavyweight cotton staples, and relaxed Italian wool tailoring designed for permanent rotation.
+        <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed font-light">
+          Explore our complete collection of selvedge denim jackets, 100% combed cotton t-shirts, hoodies, resort shirts, and tailored trousers.
         </p>
       </div>
 

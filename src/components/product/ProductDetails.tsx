@@ -129,7 +129,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
       {uniqueColors.length > 0 && (
         <div className="space-y-3">
           <div className="flex justify-between text-xs">
-            <span className="text-zinc-400 uppercase tracking-wider">Shade:</span>
+            <span className="text-zinc-400 uppercase tracking-wider">Color:</span>
             <span className="text-white font-medium">{selectedVariant?.color_name}</span>
           </div>
           <div className="flex items-center gap-3">
@@ -142,7 +142,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                   className={`group relative p-1 rounded-full border transition-all ${
                     isSelected ? 'border-white scale-110' : 'border-transparent hover:border-zinc-700'
                   }`}
-                  aria-label={`Select shade ${col.color_name}`}
+                  aria-label={`Select color ${col.color_name}`}
                 >
                   <span
                     className="block w-6 h-6 rounded-full border border-zinc-700/80 shadow-inner"
@@ -210,17 +210,17 @@ export function ProductDetails({ product }: ProductDetailsProps) {
           <button
             onClick={() => handleAddToCart(false)}
             disabled={!selectedVariant || selectedVariant.stock_quantity <= 0}
-            className="flex-1 py-4 bg-white text-zinc-950 hover:bg-zinc-200 font-medium text-xs uppercase tracking-[0.25em] flex items-center justify-center gap-2 rounded-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+            className="flex-1 py-4 bg-white text-zinc-950 hover:bg-zinc-200 font-semibold text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-2 rounded-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
           >
             {addedSuccess ? (
               <>
                 <Check className="w-4 h-4 text-emerald-600" />
-                <span>Added to Bag</span>
+                <span>Added to Cart!</span>
               </>
             ) : (
               <>
                 <ShoppingBag className="w-4 h-4" />
-                <span>Add to Shopping Bag</span>
+                <span>Add to Cart</span>
               </>
             )}
           </button>
@@ -228,34 +228,34 @@ export function ProductDetails({ product }: ProductDetailsProps) {
           <button
             onClick={() => handleAddToCart(true)}
             disabled={!selectedVariant || selectedVariant.stock_quantity <= 0}
-            className="py-4 px-6 bg-zinc-900 border border-zinc-700 hover:border-white text-white font-medium text-xs uppercase tracking-[0.2em] rounded-sm transition-colors whitespace-nowrap"
+            className="py-4 px-6 bg-zinc-900 border border-zinc-700 hover:border-white text-white font-semibold text-xs uppercase tracking-[0.15em] rounded-sm transition-colors whitespace-nowrap"
           >
-            Instant Buy
+            Buy Now
           </button>
         </div>
 
         <div className="grid grid-cols-3 gap-2 py-3 border-y border-zinc-800 text-[11px] text-zinc-400 text-center">
           <div className="flex items-center justify-center gap-1.5">
             <Truck className="w-3.5 h-3.5 text-zinc-300" />
-            <span>Fast Express</span>
+            <span>Free Express Delivery</span>
           </div>
           <div className="flex items-center justify-center gap-1.5 border-x border-zinc-800">
             <RotateCcw className="w-3.5 h-3.5 text-zinc-300" />
-            <span>7-Day Return</span>
+            <span>7-Day Easy Returns</span>
           </div>
           <div className="flex items-center justify-center gap-1.5">
             <ShieldCheck className="w-3.5 h-3.5 text-zinc-300" />
-            <span>Authentic Atelier</span>
+            <span>100% Original Fabric</span>
           </div>
         </div>
       </div>
 
-      {/* 5. Editorial Accordions */}
+      {/* 5. Details Accordions */}
       <div className="divide-y divide-zinc-800/80 border-b border-zinc-800 text-xs">
         
         {/* Description & Overview */}
         <div className="py-4">
-          <h3 className="font-semibold text-white uppercase tracking-wider mb-2">The Garment</h3>
+          <h3 className="font-semibold text-white uppercase tracking-wider mb-2">Description & Details</h3>
           <p className="text-zinc-400 leading-relaxed">
             {product.description}
           </p>
@@ -273,7 +273,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
           {openAccordion === 'composition' && (
             <div className="mt-3 text-zinc-400 space-y-2">
               <p><strong>Composition:</strong> {product.details?.composition || '100% Premium Sourced Natural Fabric'}</p>
-              <p><strong>Origin:</strong> {product.details?.origin || 'Atelier Crafted'}</p>
+              <p><strong>Origin:</strong> {product.details?.origin || 'Crafted in India'}</p>
             </div>
           )}
         </div>
@@ -284,12 +284,12 @@ export function ProductDetails({ product }: ProductDetailsProps) {
             onClick={() => toggleAccordion('fit')}
             className="w-full flex justify-between items-center text-white font-medium uppercase tracking-wider text-left"
           >
-            <span>Silhouette & Fit</span>
+            <span>Size & Fit</span>
             <ChevronDown className={`w-4 h-4 transition-transform ${openAccordion === 'fit' ? 'rotate-180' : ''}`} />
           </button>
           {openAccordion === 'fit' && (
             <div className="mt-3 text-zinc-400 space-y-2">
-              <p>{product.details?.fit || 'Relaxed tailored silhouette designed to drape naturally.'}</p>
+              <p>{product.details?.fit || 'Relaxed tailored fit designed for comfortable all-day wear.'}</p>
               <p>Model is 6&apos;1&quot; wearing size L for a relaxed drape.</p>
             </div>
           )}
@@ -301,12 +301,12 @@ export function ProductDetails({ product }: ProductDetailsProps) {
             onClick={() => toggleAccordion('care')}
             className="w-full flex justify-between items-center text-white font-medium uppercase tracking-wider text-left"
           >
-            <span>Garment Care</span>
+            <span>Wash & Care Instructions</span>
             <ChevronDown className={`w-4 h-4 transition-transform ${openAccordion === 'care' ? 'rotate-180' : ''}`} />
           </button>
           {openAccordion === 'care' && (
             <div className="mt-3 text-zinc-400 space-y-2">
-              <p>{product.details?.care || 'Cold hand wash or specialist dry clean. Air dry flat away from direct sunlight.'}</p>
+              <p>{product.details?.care || 'Cold gentle hand wash or specialist dry clean. Air dry flat away from direct sunlight.'}</p>
             </div>
           )}
         </div>

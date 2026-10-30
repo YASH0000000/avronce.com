@@ -60,14 +60,14 @@ export default function LookbookPage() {
       
       {/* Header */}
       <div className="max-w-2xl space-y-4 border-b border-zinc-800 pb-8">
-        <span className="text-xs uppercase tracking-[0.3em] text-zinc-400 font-mono">
-          Visual Anthology
+        <span className="text-xs uppercase tracking-[0.25em] text-zinc-400 font-mono">
+          Style Inspiration
         </span>
         <h1 className="font-serif text-3xl sm:text-5xl font-light text-white tracking-tight">
-          Autumn / Winter &apos;26 Lookbook
+          Stylebook & Outfit Ideas
         </h1>
-        <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed font-light">
-          An editorial exploration of form, weight, and materiality. Avronce garments photographed on location to demonstrate fluid movement and relaxed drape.
+        <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed font-light">
+          Explore how our jackets, tees, trousers, and shirts come together. Clean silhouettes and effortless everyday outfits designed for modern India.
         </p>
       </div>
 
@@ -86,9 +86,9 @@ export default function LookbookPage() {
               <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">
                 <Link
                   href={item.link}
-                  className="w-full py-2.5 bg-white text-zinc-950 text-xs uppercase tracking-widest font-medium text-center flex items-center justify-center gap-1.5 shadow-lg"
+                  className="w-full py-2.5 bg-white text-zinc-950 text-xs uppercase tracking-wider font-semibold text-center flex items-center justify-center gap-1.5 shadow-lg rounded-sm hover:bg-zinc-200 transition-colors"
                 >
-                  <span>Acquire Garment</span>
+                  <span>Shop This Look</span>
                   <ArrowUpRight className="w-4 h-4" />
                 </Link>
               </div>

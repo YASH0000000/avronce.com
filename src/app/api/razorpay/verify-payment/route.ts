@@ -72,12 +72,17 @@ export async function POST(request: Request) {
       );
     }
 
+    // Helper to validate UUID
+    const isValidUuid = (id: any): boolean =>
+      typeof id === 'string' &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+
     // 4. Insert into `order_items` table
     if (items && items.length > 0) {
       const orderItems = items.map((item: any) => ({
         order_id: order.id,
-        product_id: item.productId,
-        variant_id: item.variantId,
+        product_id: isValidUuid(item.productId) ? item.productId : null,
+        variant_id: isValidUuid(item.variantId) ? item.variantId : null,
         product_name: item.name,
         product_slug: item.slug,
         product_image: item.image,

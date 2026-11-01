@@ -2,119 +2,127 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Logo } from '@/components/brand/Logo';
-import { ArrowRight, CheckCircle, Shield, Award, Sparkles } from 'lucide-react';
+import { ArrowRight, CheckCircle, Shield, Award, Sparkles, Flame, Heart } from 'lucide-react';
+
+export const metadata = {
+  title: 'Our Story & Brand Vision | LITTLEBOX INDIA',
+  description: 'Learn about Littlebox India: The fast-fashion & aesthetic lifestyle brand built for Gen Z trendsetters.',
+};
 
 export default function AboutPage() {
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24 space-y-20">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20 space-y-16">
       
       {/* 1. Header & Brand Story */}
-      <div className="max-w-3xl space-y-6">
-        <span className="text-xs uppercase tracking-[0.25em] text-zinc-400 font-mono">
-          Our Story
-        </span>
-        <h1 className="font-serif text-4xl sm:text-6xl font-light text-white tracking-tight leading-tight">
-          Built for daily life. <br />
-          <span className="italic font-normal">Made to last for years.</span>
+      <div className="max-w-3xl space-y-4">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-yellow-400 text-zinc-950 font-black text-xs uppercase tracking-widest rounded-full">
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>ABOUT LITTLEBOX</span>
+        </div>
+        <h1 className="text-4xl sm:text-6xl font-black uppercase text-zinc-950 dark:text-white tracking-tight leading-none">
+          Fast Fashion for Trendsetters & Gen Z ✨
         </h1>
-        <p className="text-sm sm:text-base text-zinc-300 leading-relaxed font-light">
-          <strong>AVRONCE</strong> (avronce.com) was founded in India on a simple promise: great clothing doesn&apos;t need to be disposable or overpriced. We build garments from genuine heavyweight cottons, Japanese selvedge denim, and authentic wools that feel softer, fit better, and last wash after wash.
+        <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-300 leading-relaxed">
+          <strong>LITTLEBOX</strong> (littleboxindia.com) was born out of a desire to bring Pinterest and Instagram-trending fashion to India at pocket-friendly prices. From statement chunky boots and Mary Janes to romantic backless dresses, aesthetic corset tops, and relaxed coords — we drop the freshest styles weekly.
         </p>
       </div>
 
       {/* 2. Visual Split Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-        <div className="lg:col-span-7 relative aspect-[16/10] bg-zinc-900 border border-zinc-800 rounded-sm overflow-hidden shadow-2xl">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <div className="lg:col-span-7 relative aspect-[16/10] bg-zinc-950 rounded-sm overflow-hidden shadow-2xl border border-zinc-200 dark:border-zinc-800">
           <Image
-            src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1400&q=80"
-            alt="Avronce Studio and Workshop"
+            src="/images/collections/cat_boots.webp"
+            alt="Littlebox Boots and Aesthetic Drops"
             fill
             sizes="(max-width: 1024px) 100vw, 60vw"
             className="object-cover"
           />
         </div>
 
-        <div className="lg:col-span-5 space-y-6">
-          <h2 className="font-serif text-2xl sm:text-3xl text-white">
-            Honest Fabrics. Direct to You.
+        <div className="lg:col-span-5 space-y-5">
+          <span className="text-xs font-bold uppercase tracking-widest text-red-500 font-mono">
+            WHY WE STARTED
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-black uppercase text-zinc-950 dark:text-white">
+            Trends Move Fast. We Move Faster.
           </h2>
-          <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
-            We cut out the middlemen and mall distributors so you get world-class fabrics without the luxury markup. Our denim comes directly from Okayama, Japan; our tailoring wool is sourced from Biella, Italy; and our heavyweight combed cotton fleece is knit right here in Tirupur, India.
+          <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed">
+            Why wait months for international brands to launch what&apos;s already trending on your TikTok and Instagram feed? At Littlebox, we design, manufacture, and ship viral fits directly to your doorstep in days.
           </p>
-          <div className="space-y-3 pt-2 text-xs text-zinc-300">
+          <div className="space-y-2.5 pt-2 text-xs text-zinc-800 dark:text-zinc-200 font-semibold">
             <div className="flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>100% Breathable Long-Staple Indian Combed Cotton</span>
+              <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+              <span>Chunky soles & footwear engineered for all-day comfort</span>
             </div>
             <div className="flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>Eco-Friendly Recycled Paper Packaging</span>
+              <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+              <span>Inclusive sizing ranging from XS to Curve / Plus</span>
             </div>
             <div className="flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>Zero Cheap Polyester or Synthetic Fillers</span>
+              <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+              <span>Loved by over 250,000+ creators and fashion lovers in India</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* 3. The Three Principles */}
-      <div className="border-t border-zinc-800 pt-16">
-        <div className="text-center max-w-xl mx-auto mb-16 space-y-2">
-          <span className="text-xs uppercase tracking-[0.25em] text-zinc-400 font-mono">Our Values</span>
-          <h3 className="font-serif text-2xl sm:text-3xl text-white">
-            What We Stand For
+      <div className="border-t border-zinc-200 dark:border-zinc-800 pt-12">
+        <div className="text-center max-w-xl mx-auto mb-12 space-y-2">
+          <span className="text-xs uppercase tracking-widest text-zinc-500 font-mono font-bold">LITTLEBOX PILLARS</span>
+          <h3 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-zinc-950 dark:text-white">
+            What We Stand For 🖤
           </h3>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="bg-zinc-900/40 border border-zinc-800 p-8 rounded-sm space-y-4">
-            <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-white">
-              <Shield className="w-5 h-5" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 rounded-sm space-y-3">
+            <div className="w-10 h-10 rounded-full bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 flex items-center justify-center font-bold">
+              01
             </div>
-            <h4 className="font-serif text-lg text-white">01. Comfort & Fit First</h4>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              Every drop shoulder, collar, and waistline is carefully proportioned so your clothes move with you naturally throughout your day.
+            <h4 className="text-base font-black uppercase text-zinc-950 dark:text-white">Trend-First Curation</h4>
+            <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
+              Every drop is inspired by street culture, Y2K aesthetics, K-pop trends, and viral Pinterest fits.
             </p>
           </div>
 
-          <div className="bg-zinc-900/40 border border-zinc-800 p-8 rounded-sm space-y-4">
-            <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-white">
-              <Award className="w-5 h-5" />
+          <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 rounded-sm space-y-3">
+            <div className="w-10 h-10 rounded-full bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 flex items-center justify-center font-bold">
+              02
             </div>
-            <h4 className="font-serif text-lg text-white">02. Durable Craftsmanship</h4>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              Reinforced bar-tacking, double-needle seams, and premium brass hardware ensure your garment lasts through years of regular wear.
+            <h4 className="text-base font-black uppercase text-zinc-950 dark:text-white">Pocket-Friendly Pricing</h4>
+            <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
+              Fast fashion should be accessible. We offer frequent BOGO promotions, drops under ₹999, and flat discounts.
             </p>
           </div>
 
-          <div className="bg-zinc-900/40 border border-zinc-800 p-8 rounded-sm space-y-4">
-            <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-white">
-              <Sparkles className="w-5 h-5" />
+          <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 rounded-sm space-y-3">
+            <div className="w-10 h-10 rounded-full bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 flex items-center justify-center font-bold">
+              03
             </div>
-            <h4 className="font-serif text-lg text-white">03. Transparent Pricing</h4>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              By selling directly to you online at avronce.com, we pass the savings directly to you, offering international quality at honest Indian prices.
+            <h4 className="text-base font-black uppercase text-zinc-950 dark:text-white">Hassle-Free India Delivery</h4>
+            <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
+              Doorstep Cash on Delivery (COD), instant UPI refunds, and 7-day easy size exchange.
             </p>
           </div>
         </div>
       </div>
 
       {/* 4. Action Banner */}
-      <div className="bg-zinc-900/50 border border-zinc-800 p-10 sm:p-16 rounded-sm text-center space-y-6">
-        <Logo variant="combined" size="lg" className="mx-auto" />
-        <h3 className="font-serif text-2xl sm:text-3xl text-white font-normal">
-          Experience Avronce for yourself.
+      <div className="bg-zinc-950 text-white p-8 sm:p-14 rounded-sm text-center space-y-5 shadow-2xl">
+        <Logo variant="combined" size="lg" inverted className="mx-auto" />
+        <h3 className="text-2xl sm:text-3xl font-black uppercase text-white">
+          Ready to Elevate Your Everyday Vibe?
         </h3>
         <p className="text-xs sm:text-sm text-zinc-400 max-w-md mx-auto">
-          Shop our collection with free express shipping across India and easy 7-day doorstep returns & exchanges.
+          Shop trending chunky boots, dresses, and Y2K statement pieces with free shipping above ₹999.
         </p>
         <div>
           <Link
             href="/shop"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-white text-zinc-950 font-semibold text-xs uppercase tracking-[0.2em] hover:bg-zinc-200 transition-colors shadow-lg rounded-sm"
+            className="inline-flex items-center gap-2 px-8 py-3.5 bg-white text-zinc-950 font-black text-xs uppercase tracking-[0.2em] hover:bg-zinc-200 transition-colors shadow-lg rounded-xs"
           >
-            <span>Shop The Collection</span>
+            <span>Explore All Drops</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>

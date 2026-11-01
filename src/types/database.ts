@@ -62,12 +62,13 @@ export interface CartItem {
   name: string;
   slug: string;
   price: number;
+  originalPrice?: number;
   image: string;
   size: string;
-  colorName: string;
-  colorHex: string;
+  colorName?: string;
+  colorHex?: string;
   quantity: number;
-  stock: number;
+  stock?: number;
 }
 
 export interface ShippingAddress {

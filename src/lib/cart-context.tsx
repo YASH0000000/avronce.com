@@ -22,12 +22,14 @@ interface CartContextType {
   removeCoupon: () => void;
   taxAmount: number;
   totalAmount: number;
+  freeShippingThreshold: number;
+  freeShippingProgress: number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-const FREE_SHIPPING_THRESHOLD = 2999;
-const STANDARD_SHIPPING_FEE = 250;
+const FREE_SHIPPING_THRESHOLD = 999;
+const STANDARD_SHIPPING_FEE = 99;
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
@@ -39,11 +41,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   // Hydrate from localStorage
   useEffect(() => {
     try {
-      const stored = localStorage.getItem('avronce_cart');
+      const stored = localStorage.getItem('littlebox_cart') || localStorage.getItem('avronce_cart');
       if (stored) {
         setItems(JSON.parse(stored));
       }
-      const storedCoupon = localStorage.getItem('avronce_coupon');
+      const storedCoupon = localStorage.getItem('littlebox_coupon') || localStorage.getItem('avronce_coupon');
       if (storedCoupon) {
         const { code, percent } = JSON.parse(storedCoupon);
         setCouponCode(code);
@@ -59,11 +61,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isHydrated) return;
     try {
-      localStorage.setItem('avronce_cart', JSON.stringify(items));
+      localStorage.setItem('littlebox_cart', JSON.stringify(items));
       if (couponCode) {
-        localStorage.setItem('avronce_coupon', JSON.stringify({ code: couponCode, percent: discountPercent }));
+        localStorage.setItem('littlebox_coupon', JSON.stringify({ code: couponCode, percent: discountPercent }));
       } else {
-        localStorage.removeItem('avronce_coupon');
+        localStorage.removeItem('littlebox_coupon');
       }
     } catch (e) {
       console.error('Failed to save cart to storage', e);
@@ -75,7 +77,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const toggleCart = () => setIsOpen((prev) => !prev);
 
   const addItem = (item: Omit<CartItem, 'id'>) => {
-    const id = `${item.productId}-${item.variantId}`;
+    const id = `${item.productId}-${item.variantId}-${item.size}`;
     setItems((prev) => {
       const existing = prev.find((i) => i.id === id);
       if (existing) {
@@ -113,17 +115,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const applyCoupon = (code: string): boolean => {
     const clean = code.trim().toUpperCase();
-    if (clean === 'AVRONCE10') {
-      setCouponCode('AVRONCE10');
+    if (clean === 'B2G1' || clean === 'BUY2GET1') {
+      setCouponCode('B2G1');
+      setDiscountPercent(33);
+      return true;
+    } else if (clean === 'NEW10' || clean === 'WELCOME10') {
+      setCouponCode('NEW10');
       setDiscountPercent(10);
       return true;
-    } else if (clean === 'FIRST15') {
-      setCouponCode('FIRST15');
-      setDiscountPercent(15);
-      return true;
-    } else if (clean === 'VIP20') {
-      setCouponCode('VIP20');
+    } else if (clean === 'WELCOME200' || clean === 'LITTLEBOX20') {
+      setCouponCode('WELCOME200');
       setDiscountPercent(20);
+      return true;
+    } else if (clean === 'PREPAID10') {
+      setCouponCode('PREPAID10');
+      setDiscountPercent(10);
       return true;
     }
     return false;
@@ -138,10 +144,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const discountAmount = Math.round((subtotal * discountPercent) / 100);
   const shippingFee = subtotal === 0 || subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING_FEE;
-  // 12% GST standard apparel rate (included or calculated)
   const taxableAmount = Math.max(0, subtotal - discountAmount);
-  const taxAmount = Math.round(taxableAmount * 0.12);
+  const taxAmount = Math.round(taxableAmount * 0.05); // 5% GST on footwear/apparel
   const totalAmount = taxableAmount + shippingFee;
+  const freeShippingProgress = Math.min(100, Math.round((subtotal / FREE_SHIPPING_THRESHOLD) * 100));
 
   return (
     <CartContext.Provider
@@ -164,6 +170,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         removeCoupon,
         taxAmount,
         totalAmount,
+        freeShippingThreshold: FREE_SHIPPING_THRESHOLD,
+        freeShippingProgress,
       }}
     >
       {children}

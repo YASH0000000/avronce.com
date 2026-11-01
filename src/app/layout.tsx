@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono, Playfair_Display } from 'next/font/google';
+import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { CartProvider } from '@/lib/cart-context';
 import { Navbar } from '@/components/layout/Navbar';
@@ -16,26 +16,22 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
-const playfair = Playfair_Display({
-  variable: '--font-serif',
-  subsets: ['latin'],
-});
-
 export const metadata: Metadata = {
-  title: 'AVRONCE | Architectural Ready-to-Wear Atelier',
-  description: 'Official digital flagship of avronce.com. Permanent clothing collections engineered from Japanese selvedge denim, Italian virgin wool, and 480 GSM organic cotton.',
-  keywords: ['avronce', 'avronce.com', 'luxury clothing', 'selvedge denim', 'minimalist fashion', 'atelier clothing India'],
+  metadataBase: new URL('http://localhost:3000'),
+  title: 'LITTLEBOX INDIA | Fast Fashion, Chunky Boots, Y2K Apparel & Party Dresses',
+  description: 'Shop viral chunky boots, platforms, romantic party dresses, Mary Janes, corset tops, and aesthetic street fashion made for Gen Z. Free shipping above ₹999 & COD available.',
+  keywords: ['littlebox', 'littlebox india', 'littlebox boots', 'chunky boots', 'party dresses', 'y2k fashion', 'mary janes', 'fast fashion india'],
   openGraph: {
-    title: 'AVRONCE | Architectural Ready-to-Wear Atelier',
-    description: 'Permanent luxury garments. Designed without compromise.',
-    url: 'https://avronce.com',
-    siteName: 'AVRONCE',
+    title: 'LITTLEBOX INDIA | Fast Fashion for Trendsetters',
+    description: 'Shop viral chunky boots, romantic party dresses, and aesthetic street fashion.',
+    url: 'https://littleboxindia.com',
+    siteName: 'LITTLEBOX INDIA',
     images: [
       {
-        url: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1200&q=80',
+        url: '/images/collections/cat_boots.webp',
         width: 1200,
         height: 630,
-        alt: 'AVRONCE Autumn Winter Campaign',
+        alt: 'LITTLEBOX Signature Boots & Footwear',
       },
     ],
     locale: 'en_IN',
@@ -51,9 +47,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} dark antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} antialiased`}
     >
-      <body className="min-h-screen flex flex-col bg-zinc-950 text-zinc-100 selection:bg-white selection:text-zinc-950 font-sans">
+      <body className="min-h-screen flex flex-col bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 selection:bg-yellow-400 selection:text-zinc-950 font-sans">
         <CartProvider>
           <Navbar />
           <main className="flex-1">

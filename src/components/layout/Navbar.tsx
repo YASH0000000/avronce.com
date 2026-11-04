@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ShoppingBag, Search, Menu, X, Heart, Package, Sparkles, ChevronRight, Zap } from 'lucide-react';
+import { ShoppingBag, Search, Menu, X, Heart, Package, Sparkles, ChevronRight, Zap, ShieldCheck } from 'lucide-react';
 import { Logo } from '@/components/brand/Logo';
 import { useCart } from '@/lib/cart-context';
 
@@ -15,15 +15,15 @@ export function Navbar() {
 
   const announcements = [
     '⚡ FLASH SALE: BUY 2 GET 1 FREE • USE CODE: B2G1 ⚡',
-    '✨ FREE SHIPPING ON ALL PREPAID ORDERS ABOVE ₹999 ✨',
+    '✨ FREE SHIPPING ON ALL ORDERS ABOVE ₹999 ACROSS INDIA ✨',
     '🔥 FLAT 10% OFF ON YOUR FIRST ORDER • CODE: NEW10 🔥',
-    '📦 EASY 7-DAY SIZE EXCHANGE & COD AVAILABLE ACROSS INDIA 📦',
+    '📦 7-DAY EASY SIZE EXCHANGE & CASH ON DELIVERY (COD) AVAILABLE 📦',
   ];
 
   useEffect(() => {
     const timer = setInterval(() => {
       setAnnouncementIndex((prev) => (prev + 1) % announcements.length);
-    }, 4000);
+    }, 4500);
     return () => clearInterval(timer);
   }, [announcements.length]);
 
@@ -57,24 +57,24 @@ export function Navbar() {
       </div>
 
       {/* 2. Main Sticky Navigation Header */}
-      <header className="sticky top-0 z-40 w-full bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 transition-colors">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-4">
+      <header className="sticky top-0 z-40 w-full bg-zinc-950/98 backdrop-blur-md border-b border-zinc-800 text-white transition-colors">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 sm:h-20 flex items-center justify-between gap-4">
           
-          {/* LEFT: Logo */}
+          {/* LEFT: Official AVRONCE Logo */}
           <div className="flex items-center gap-8 shrink-0">
-            <Logo variant="combined" size="md" />
+            <Logo size="md" />
           </div>
 
           {/* CENTER: Desktop Menu Links */}
-          <nav className="hidden lg:flex items-center gap-6 xl:gap-7">
+          <nav className="hidden lg:flex items-center gap-5 xl:gap-7">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 className={`text-xs font-bold uppercase tracking-[0.14em] transition-all relative py-1 flex items-center gap-1.5 ${
                   link.isSale
-                    ? 'text-red-500 hover:text-red-600'
-                    : 'text-zinc-700 dark:text-zinc-200 hover:text-zinc-950 dark:hover:text-white'
+                    ? 'text-yellow-400 hover:text-yellow-300'
+                    : 'text-zinc-300 hover:text-white'
                 }`}
               >
                 <span>{link.label}</span>
@@ -84,22 +84,22 @@ export function Navbar() {
                   </span>
                 )}
                 {link.isSale && (
-                  <span className="px-1.5 py-0.2 text-[9px] font-black bg-red-500 text-white rounded-xs tracking-tighter">
+                  <span className="px-1.5 py-0.2 text-[9px] font-black bg-red-600 text-white rounded-xs tracking-tighter">
                     OFFER
                   </span>
                 )}
-                <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-zinc-950 dark:bg-white transition-all duration-300 group-hover:w-full" />
+                <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-yellow-400 transition-all duration-300 group-hover:w-full" />
               </Link>
             ))}
           </nav>
 
           {/* RIGHT: Actions */}
-          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
             
             {/* Search Trigger */}
             <button
               onClick={() => setSearchOpen(!searchOpen)}
-              className="p-2 text-zinc-700 dark:text-zinc-200 hover:text-zinc-950 dark:hover:text-white transition-colors rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-900"
+              className="p-2 text-zinc-300 hover:text-white transition-colors rounded-full hover:bg-zinc-900"
               aria-label="Search Catalog"
             >
               <Search className="w-5 h-5" />
@@ -108,24 +108,34 @@ export function Navbar() {
             {/* Track Order */}
             <Link
               href="/track"
-              className="hidden md:flex items-center gap-1.5 text-xs font-semibold tracking-wider uppercase text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white px-2 py-1"
+              className="hidden md:flex items-center gap-1.5 text-xs font-semibold tracking-wider uppercase text-zinc-300 hover:text-white px-2 py-1"
             >
-              <Package className="w-4 h-4" />
+              <Package className="w-4 h-4 text-zinc-400" />
               <span className="hidden xl:inline">Track Order</span>
+            </Link>
+
+            {/* Admin Portal Shortcut */}
+            <Link
+              href="/admin"
+              className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-mono font-bold uppercase tracking-wider text-yellow-300 bg-zinc-900 border border-yellow-400/30 hover:border-yellow-400 rounded-xs transition-colors"
+              title="Open AVRONCE Business Admin Panel"
+            >
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Admin</span>
             </Link>
 
             {/* Shopping Cart Drawer Trigger */}
             <button
               onClick={openCart}
-              className="relative p-2 text-zinc-900 dark:text-white transition-colors rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-900 flex items-center gap-1.5"
+              className="relative p-2 text-white transition-colors rounded-full hover:bg-zinc-900 flex items-center gap-1.5"
               aria-label="View Cart"
             >
               <ShoppingBag className="w-5 h-5 transition-transform hover:scale-110" />
               <span className="hidden sm:inline-block text-xs font-bold uppercase tracking-wider">
-                Cart
+                Bag
               </span>
               {itemCount > 0 && (
-                <span className="bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center animate-pulse">
+                <span className="bg-yellow-400 text-zinc-950 text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center animate-pulse">
                   {itemCount}
                 </span>
               )}
@@ -134,7 +144,7 @@ export function Navbar() {
             {/* Mobile Menu Hamburger */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-zinc-800 dark:text-zinc-200 lg:hidden rounded-sm hover:bg-zinc-100 dark:hover:bg-zinc-900"
+              className="p-2 text-zinc-300 hover:text-white lg:hidden rounded-sm hover:bg-zinc-900"
               aria-label="Open Navigation Menu"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -146,7 +156,7 @@ export function Navbar() {
 
         {/* Search Drawer Modal */}
         {searchOpen && (
-          <div className="border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 shadow-xl animate-in slide-in-from-top-2 duration-200">
+          <div className="border-t border-zinc-800 bg-zinc-900 p-4 shadow-2xl animate-in slide-in-from-top-2 duration-200">
             <div className="max-w-3xl mx-auto">
               <form onSubmit={handleSearchSubmit} className="relative flex items-center">
                 <Search className="w-5 h-5 text-zinc-400 absolute left-3 pointer-events-none" />
@@ -156,19 +166,19 @@ export function Navbar() {
                   placeholder="Search chunky boots, party dresses, mary janes, corset tops, coords..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-700 text-sm text-zinc-900 dark:text-white pl-10 pr-24 py-3 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-950 dark:focus:border-white rounded-sm font-sans"
+                  className="w-full bg-zinc-950 border border-zinc-700 text-sm text-white pl-10 pr-24 py-3 placeholder:text-zinc-500 focus:outline-none focus:border-yellow-400 rounded-sm font-sans"
                 />
                 <div className="absolute right-2 flex items-center gap-2">
                   <button
                     type="submit"
-                    className="px-4 py-1.5 bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 text-xs uppercase font-bold tracking-wider hover:opacity-90 rounded-sm"
+                    className="px-4 py-1.5 bg-yellow-400 text-zinc-950 text-xs uppercase font-black tracking-wider hover:bg-yellow-300 rounded-sm"
                   >
                     Search
                   </button>
                   <button
                     type="button"
                     onClick={() => setSearchOpen(false)}
-                    className="p-1.5 text-zinc-400 hover:text-zinc-700"
+                    className="p-1.5 text-zinc-400 hover:text-white"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -183,18 +193,18 @@ export function Navbar() {
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div
-            className="fixed inset-0 bg-black/70 backdrop-blur-xs"
+            className="fixed inset-0 bg-black/80 backdrop-blur-xs"
             onClick={() => setMobileMenuOpen(false)}
           />
-          <div className="fixed inset-y-0 left-0 w-4/5 max-w-sm bg-white dark:bg-zinc-950 text-zinc-950 dark:text-white p-6 border-r border-zinc-200 dark:border-zinc-800 shadow-2xl flex flex-col justify-between overflow-y-auto">
+          <div className="fixed inset-y-0 left-0 w-4/5 max-w-sm bg-zinc-950 text-white p-6 border-r border-zinc-800 shadow-2xl flex flex-col justify-between overflow-y-auto">
             <div className="space-y-6">
               
               {/* Drawer Top */}
-              <div className="flex items-center justify-between pb-4 border-b border-zinc-200 dark:border-zinc-800">
-                <Logo variant="combined" size="sm" />
+              <div className="flex items-center justify-between pb-4 border-b border-zinc-800">
+                <Logo size="sm" />
                 <button
                   onClick={() => setMobileMenuOpen(false)}
-                  className="p-2 text-zinc-500 hover:text-zinc-950 dark:hover:text-white"
+                  className="p-2 text-zinc-400 hover:text-white"
                 >
                   <X className="w-6 h-6" />
                 </button>
@@ -207,33 +217,43 @@ export function Navbar() {
                     key={link.href}
                     href={link.href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center justify-between text-sm uppercase tracking-wider font-bold py-3 border-b border-zinc-100 dark:border-zinc-900 ${
-                      link.isSale ? 'text-red-500' : 'text-zinc-800 dark:text-zinc-200'
+                    className={`flex items-center justify-between text-sm uppercase tracking-wider font-bold py-3 border-b border-zinc-900 ${
+                      link.isSale ? 'text-yellow-400' : 'text-zinc-200'
                     }`}
                   >
                     <span>{link.label}</span>
-                    <ChevronRight className="w-4 h-4 text-zinc-400" />
+                    <ChevronRight className="w-4 h-4 text-zinc-500" />
                   </Link>
                 ))}
 
                 <Link
                   href="/track"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center justify-between text-sm uppercase tracking-wider font-bold text-zinc-800 dark:text-zinc-200 py-3 border-b border-zinc-100 dark:border-zinc-900"
+                  className="flex items-center justify-between text-sm uppercase tracking-wider font-bold text-zinc-200 py-3 border-b border-zinc-900"
                 >
                   <span>Track Your Order</span>
                   <Package className="w-4 h-4 text-zinc-400" />
+                </Link>
+
+                <Link
+                  href="/admin"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-between text-sm uppercase tracking-wider font-bold text-yellow-300 py-3 border-b border-zinc-900"
+                >
+                  <span>Admin Dashboard</span>
+                  <ShieldCheck className="w-4 h-4 text-yellow-400" />
                 </Link>
               </div>
 
             </div>
 
             {/* Drawer Bottom Perks */}
-            <div className="pt-6 border-t border-zinc-200 dark:border-zinc-800 text-xs text-zinc-500 space-y-2">
-              <p className="font-semibold text-zinc-800 dark:text-zinc-200">
-                ⚡ Free Shipping above ₹999
+            <div className="pt-6 border-t border-zinc-800 text-xs text-zinc-400 space-y-2">
+              <p className="font-bold text-white flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
+                <span>Free Shipping above ₹999</span>
               </p>
-              <p>
+              <p className="text-[11px] text-zinc-500">
                 7-day easy exchange & Cash on Delivery across India.
               </p>
             </div>

@@ -18,20 +18,20 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL('http://localhost:3000'),
-  title: 'LITTLEBOX INDIA | Fast Fashion, Chunky Boots, Y2K Apparel & Party Dresses',
-  description: 'Shop viral chunky boots, platforms, romantic party dresses, Mary Janes, corset tops, and aesthetic street fashion made for Gen Z. Free shipping above ₹999 & COD available.',
-  keywords: ['littlebox', 'littlebox india', 'littlebox boots', 'chunky boots', 'party dresses', 'y2k fashion', 'mary janes', 'fast fashion india'],
+  title: 'AVRONCE | Modern Everyday Luxury & Trendsetter Fashion',
+  description: 'Official digital flagship of AVRONCE (avronce.com). Shop viral chunky boots, statement party dresses, Mary Janes, and contemporary aesthetic apparel. Free shipping above ₹999 & COD available.',
+  keywords: ['avronce', 'avronce.com', 'avronce boots', 'chunky boots india', 'party dresses', 'luxury fashion india', 'trendsetter apparel'],
   openGraph: {
-    title: 'LITTLEBOX INDIA | Fast Fashion for Trendsetters',
+    title: 'AVRONCE | Modern Everyday Luxury & Trendsetter Fashion',
     description: 'Shop viral chunky boots, romantic party dresses, and aesthetic street fashion.',
-    url: 'https://littleboxindia.com',
-    siteName: 'LITTLEBOX INDIA',
+    url: 'https://avronce.com',
+    siteName: 'AVRONCE',
     images: [
       {
-        url: '/images/collections/cat_boots.webp',
-        width: 1200,
-        height: 630,
-        alt: 'LITTLEBOX Signature Boots & Footwear',
+        url: '/images/avronce-logo.png',
+        width: 743,
+        height: 198,
+        alt: 'AVRONCE Official Logo',
       },
     ],
     locale: 'en_IN',
@@ -49,7 +49,7 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} antialiased`}
     >
-      <body className="min-h-screen flex flex-col bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 selection:bg-yellow-400 selection:text-zinc-950 font-sans">
+      <body className="min-h-screen flex flex-col bg-zinc-950 text-zinc-100 selection:bg-yellow-400 selection:text-zinc-950 font-sans">
         <CartProvider>
           <Navbar />
           <main className="flex-1">

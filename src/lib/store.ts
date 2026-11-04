@@ -1,4 +1,4 @@
-import littleboxData from '@/data/littlebox.json';
+import storeDb from '@/data/store-db.json';
 
 export interface LittleboxVariant {
   id: string;
@@ -35,11 +35,15 @@ export interface LittleboxProduct {
   isBestseller: boolean;
   isNew: boolean;
   createdAt: string;
-  publishedAt: string;
+  publishedAt?: string;
+  stock?: number;
+  status?: string;
 }
 
+export type AvronceProduct = LittleboxProduct;
+
 export interface LittleboxCollection {
-  id: number;
+  id: number | string;
   title: string;
   handle: string;
   type: string;
@@ -60,15 +64,25 @@ export interface LittleboxMood {
 export interface LittleboxBrand {
   name: string;
   tagline: string;
+  logo?: string;
   announcements: string[];
+  contact?: {
+    email: string;
+    phone: string;
+    address: string;
+  };
   social: {
     instagram: string;
     facebook: string;
   };
 }
 
-const data = littleboxData as {
+const data = storeDb as unknown as {
   brand: LittleboxBrand;
+  cms: {
+    announcements: string[];
+    heroSlides: any[];
+  };
   featuredCollections: LittleboxCollection[];
   moodCollections: LittleboxMood[];
   products: LittleboxProduct[];
@@ -76,6 +90,10 @@ const data = littleboxData as {
 
 export function getBrand(): LittleboxBrand {
   return data.brand;
+}
+
+export function getCms() {
+  return data.cms;
 }
 
 export function getCollections(): LittleboxCollection[] {
@@ -87,12 +105,12 @@ export function getMoods(): LittleboxMood[] {
 }
 
 export function getAllProducts(): LittleboxProduct[] {
-  return data.products;
+  return data.products.filter((p) => p.status !== 'archived');
 }
 
 export function getProductBySlug(slug: string): LittleboxProduct | null {
   const p = data.products.find(
-    (item) => item.slug.toLowerCase() === slug.toLowerCase() || item.handle.toLowerCase() === slug.toLowerCase()
+    (item) => item.slug.toLowerCase() === slug.toLowerCase() || item.handle.toLowerCase() === slug.toLowerCase() || item.id === slug
   );
   return p || null;
 }
@@ -109,17 +127,16 @@ export function getProductsByCategory(category: string, limit?: number): Littleb
 }
 
 export function getProductsByMood(moodId: string, limit?: number): LittleboxProduct[] {
-  // Map moods to tags or styles
   const mood = moodId.toLowerCase();
   let filtered: LittleboxProduct[] = [];
 
   if (mood === 'edgy') {
     filtered = data.products.filter(
-      (p) => p.category === 'Boots' || p.category === 'Bottoms' || p.tags.some((t) => t.toLowerCase().includes('edgy') || t.toLowerCase().includes('club'))
+      (p) => p.category === 'Boots' || p.category === 'Bottoms' || p.tags?.some((t) => t.toLowerCase().includes('edgy') || t.toLowerCase().includes('club'))
     );
   } else if (mood === 'cute') {
     filtered = data.products.filter(
-      (p) => p.category === 'Dresses' || p.category === 'Tops' || p.tags.some((t) => t.toLowerCase().includes('pink') || t.toLowerCase().includes('lace'))
+      (p) => p.category === 'Dresses' || p.category === 'Tops' || p.tags?.some((t) => t.toLowerCase().includes('pink') || t.toLowerCase().includes('lace'))
     );
   } else if (mood === 'kpop') {
     filtered = data.products.filter(
@@ -168,6 +185,6 @@ export function searchProducts(query: string): LittleboxProduct[] {
       p.title.toLowerCase().includes(q) ||
       p.category.toLowerCase().includes(q) ||
       p.productType.toLowerCase().includes(q) ||
-      p.tags.some((t) => t.toLowerCase().includes(q))
+      p.tags?.some((t) => t.toLowerCase().includes(q))
   );
 }

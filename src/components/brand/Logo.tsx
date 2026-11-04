@@ -1,68 +1,47 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface LogoProps {
-  variant?: 'wordmark' | 'monogram' | 'combined';
   className?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   inverted?: boolean;
+  href?: string;
+  variant?: 'full' | 'icon' | 'wordmark' | string;
 }
 
 export function Logo({
-  variant = 'combined',
   className = '',
   size = 'md',
   inverted = false,
+  href = '/',
+  variant,
 }: LogoProps) {
-  const textColor = inverted ? 'text-white' : 'text-zinc-950 dark:text-white';
-  const boxBg = inverted ? 'bg-white text-zinc-950' : 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950';
-
-  const sizeClasses = {
-    sm: {
-      box: 'w-6 h-6 text-xs',
-      wordmark: 'text-base tracking-[0.2em]',
-      gap: 'gap-2',
-    },
-    md: {
-      box: 'w-7 h-7 text-xs font-black',
-      wordmark: 'text-xl tracking-[0.25em]',
-      gap: 'gap-2.5',
-    },
-    lg: {
-      box: 'w-9 h-9 text-sm font-black',
-      wordmark: 'text-2xl tracking-[0.28em]',
-      gap: 'gap-3',
-    },
-    xl: {
-      box: 'w-12 h-12 text-lg font-black',
-      wordmark: 'text-4xl tracking-[0.3em]',
-      gap: 'gap-3.5',
-    },
+  const sizeMap = {
+    sm: { width: 110, height: 29, classes: 'h-7 w-auto' },
+    md: { width: 140, height: 37, classes: 'h-9 w-auto' },
+    lg: { width: 175, height: 47, classes: 'h-11 w-auto' },
+    xl: { width: 220, height: 59, classes: 'h-14 w-auto' },
   }[size];
-
-  // Minimalist iconic box emblem
-  const BoxIcon = (
-    <div
-      className={`${sizeClasses.box} ${boxBg} rounded-sm flex items-center justify-center font-bold tracking-tighter shrink-0 transition-transform duration-300 group-hover:rotate-6 shadow-sm`}
-    >
-      <span>LB</span>
-    </div>
-  );
 
   return (
     <Link
-      href="/"
-      className={`group inline-flex items-center ${sizeClasses.gap} select-none transition-opacity hover:opacity-90 ${className}`}
-      aria-label="LITTLEBOX Homepage"
+      href={href}
+      className={`inline-flex items-center select-none transition-opacity hover:opacity-90 ${className}`}
+      aria-label="AVRONCE Official Store"
     >
-      {(variant === 'monogram' || variant === 'combined') && BoxIcon}
-      {(variant === 'wordmark' || variant === 'combined') && (
-        <span
-          className={`font-sans font-black uppercase ${sizeClasses.wordmark} ${textColor} tracking-[0.22em] transition-colors`}
-        >
-          LITTLEBOX
-        </span>
-      )}
+      <div className="relative flex items-center justify-center">
+        <Image
+          src="/images/avronce-logo.png"
+          alt="AVRONCE"
+          width={sizeMap.width}
+          height={sizeMap.height}
+          priority
+          className={`${sizeMap.classes} object-contain transition-transform duration-300 hover:scale-102`}
+        />
+      </div>
     </Link>
   );
 }
+
+export default Logo;

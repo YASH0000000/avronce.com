@@ -1,6 +1,18 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  async rewrites() {
+    return [
+      {
+        source: '/admin-avronce',
+        destination: '/admin',
+      },
+      {
+        source: '/admin-avronce/:path*',
+        destination: '/admin/:path*',
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {

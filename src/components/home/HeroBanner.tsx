@@ -31,25 +31,25 @@ const SLIDES: Slide[] = [
   },
   {
     id: 'dresses',
-    tag: 'NIGHT OUT & PARTYWEAR',
+    tag: 'NIGHT OUT & RUNWAY ATELIER',
     title: 'STATEMENT DRESSES & SETS',
-    subtitle: 'From cowl neck slip dresses to bodycons and romantic ruffle trims.',
+    subtitle: 'From cowl neck slip dresses to luxury bodycons and romantic ruffle trims.',
     offer: '✨ UNDER ₹999 SPECIAL PICKS',
     image: '/images/collections/cat_dressup15.webp',
     ctaText: 'EXPLORE DRESSES',
     ctaLink: '/category/dressup15',
-    accent: 'bg-red-600 text-white',
+    accent: 'bg-amber-500/20 text-amber-300 border border-amber-500/30',
   },
   {
     id: 'street',
-    tag: 'GEN-Z STREETWEAR & COORDS',
-    title: 'Y2K TOPS & BAGGY CARGOS',
-    subtitle: 'Casual statement pieces designed for everyday trendsetters & college fits.',
+    tag: 'AVRONCE LUXURY STREETWEAR',
+    title: 'SIGNATURE TOPS & COORDS',
+    subtitle: 'Modern statement pieces designed for contemporary luxury & trendsetter fits.',
     offer: '🔥 FLAT 10% OFF ON PREPAID: PREPAID10',
     image: '/images/collections/cat_matching-sets.webp',
     ctaText: 'SHOP NEW ARRIVALS',
     ctaLink: '/shop?filter=new',
-    accent: 'bg-yellow-400 text-zinc-950',
+    accent: 'bg-amber-400 text-zinc-950',
   },
 ];
 
@@ -95,8 +95,8 @@ export function HeroBanner() {
           <div className="max-w-2xl space-y-5 sm:space-y-6">
             
             {/* Pill Offer */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-xs font-bold uppercase tracking-wider text-white">
-              <Flame className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-amber-400/10 backdrop-blur-md border border-amber-500/30 rounded-full text-xs font-bold uppercase tracking-wider text-amber-300">
+              <Flame className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
               <span>{slide.tag}</span>
             </div>
 
@@ -111,7 +111,7 @@ export function HeroBanner() {
             </p>
 
             {/* Offer highlight */}
-            <div className="inline-block px-3.5 py-1.5 bg-yellow-400 text-zinc-950 font-black text-xs sm:text-sm tracking-wide uppercase rounded-xs shadow-md">
+            <div className="inline-block px-4 py-2 bg-gradient-to-r from-amber-400 to-amber-500 text-zinc-950 font-black text-xs sm:text-sm tracking-wide uppercase rounded-xl shadow-lg border border-amber-300/40">
               {slide.offer}
             </div>
 
@@ -119,14 +119,14 @@ export function HeroBanner() {
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-3">
               <Link
                 href={slide.ctaLink}
-                className="px-8 py-4 bg-white text-zinc-950 hover:bg-zinc-200 text-xs sm:text-sm uppercase tracking-[0.18em] font-black transition-all text-center rounded-xs flex items-center justify-center gap-2 shadow-xl hover:scale-102"
+                className="px-8 py-4 bg-gradient-to-r from-amber-400 to-amber-500 text-zinc-950 hover:from-amber-300 hover:to-amber-400 text-xs sm:text-sm uppercase tracking-[0.18em] font-bold transition-all text-center rounded-xl flex items-center justify-center gap-2 shadow-xl hover:shadow-amber-500/25 active:scale-98"
               >
                 <span>{slide.ctaText}</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <Link
                 href="/shop"
-                className="px-8 py-4 bg-zinc-900/80 hover:bg-zinc-800 text-white border border-zinc-700 text-xs sm:text-sm uppercase tracking-[0.18em] font-bold transition-all text-center backdrop-blur-md rounded-xs"
+                className="px-8 py-4 bg-zinc-900/90 hover:bg-zinc-800 text-white border border-zinc-700 hover:border-amber-500/40 text-xs sm:text-sm uppercase tracking-[0.18em] font-semibold transition-all text-center backdrop-blur-md rounded-xl"
               >
                 VIEW ALL DROPS
               </Link>

@@ -116,13 +116,15 @@ export function getProductBySlug(slug: string): LittleboxProduct | null {
 }
 
 export function getProductsByCategory(category: string, limit?: number): LittleboxProduct[] {
-  const filtered = data.products.filter(
-    (p) =>
-      p.category.toLowerCase().includes(category.toLowerCase()) ||
-      p.collectionHandle.toLowerCase() === category.toLowerCase() ||
-      p.productType.toLowerCase().includes(category.toLowerCase()) ||
-      p.type.toLowerCase().includes(category.toLowerCase())
-  );
+  const filtered = data.products
+    .filter((p) => p.status !== 'archived')
+    .filter(
+      (p) =>
+        p.category.toLowerCase().includes(category.toLowerCase()) ||
+        p.collectionHandle.toLowerCase() === category.toLowerCase() ||
+        p.productType.toLowerCase().includes(category.toLowerCase()) ||
+        p.type.toLowerCase().includes(category.toLowerCase())
+    );
   return limit ? filtered.slice(0, limit) : filtered;
 }
 

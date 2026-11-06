@@ -11,8 +11,8 @@ import { ProductTabsSection } from '@/components/home/ProductTabsSection';
 import { InstaFeed } from '@/components/home/InstaFeed';
 
 export const metadata = {
-  title: 'LITTLEBOX INDIA | Fast Fashion, Chunky Boots, Y2K Apparel & Party Dresses',
-  description: 'Shop viral chunky boots, romantic party dresses, Mary Janes, corset tops and aesthetic street fashion made for Gen Z. Free shipping & COD available.',
+  title: 'AVRONCE | Modern Everyday Luxury & Trendsetter Fashion',
+  description: 'Official online store of AVRONCE. Shop viral chunky boots, statement party dresses, Mary Janes, corset tops, and modern aesthetic street fashion. Free shipping above ₹999 & COD available.',
 };
 
 export default function HomePage() {
@@ -33,27 +33,27 @@ export default function HomePage() {
       {/* 3. TRENDING CATEGORIES */}
       <CategoryGrid collections={collections} />
 
-      {/* 4. SIGNATURE LITTLEBOX 'SHOP BY MOOD' */}
+      {/* 4. SIGNATURE AVRONCE 'SHOP BY MOOD' */}
       <MoodSection moods={moods} allProducts={allProducts} />
 
-      {/* 5. FLASH PROMO STRIP */}
+      {/* 5. FLASH PROMO STRIP - AVRONCE LUXURY GOLD & ONYX */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden rounded-sm bg-gradient-to-r from-red-600 via-rose-600 to-pink-600 text-white p-6 sm:p-10 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-zinc-950 via-zinc-900 to-amber-950/60 text-white p-6 sm:p-10 shadow-2xl border border-amber-500/30 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="space-y-2 text-center md:text-left">
-            <span className="inline-block px-3 py-1 bg-yellow-400 text-zinc-950 font-black text-xs uppercase tracking-widest rounded-full">
+            <span className="inline-block px-3 py-1 bg-amber-400 text-zinc-950 font-black text-xs uppercase tracking-widest rounded-full shadow">
               LIMITED TIME DROP
             </span>
-            <h3 className="text-2xl sm:text-4xl font-black uppercase tracking-tight">
-              BUY 2 GET 1 FREE SITEWIDE 🔥
+            <h3 className="text-2xl sm:text-4xl font-black uppercase tracking-tight text-white">
+              BUY 2 GET 1 FREE SITEWIDE ✨
             </h3>
-            <p className="text-xs sm:text-sm text-pink-100 max-w-lg">
-              Mix and match boots, dresses, tops, and coords. Add 3 items to your bag and use coupon <strong className="text-yellow-300 font-mono">B2G1</strong>.
+            <p className="text-xs sm:text-sm text-zinc-300 max-w-lg">
+              Mix and match signature boots, dresses, tops, and coords. Add 3 items to your bag and apply voucher code <strong className="text-amber-400 font-mono font-bold">B2G1</strong> at checkout.
             </p>
           </div>
 
           <Link
-            href="/shop?filter=sale"
-            className="px-8 py-3.5 bg-zinc-950 text-white hover:bg-white hover:text-zinc-950 text-xs uppercase font-black tracking-[0.2em] rounded-xs transition-colors shrink-0 shadow-lg"
+            href="/shop"
+            className="px-8 py-3.5 bg-gradient-to-r from-amber-400 to-amber-500 text-zinc-950 hover:from-amber-300 hover:to-amber-400 text-xs uppercase font-black tracking-[0.2em] rounded-xl transition-all shrink-0 shadow-lg hover:shadow-amber-500/20 active:scale-98"
           >
             Claim Offer Now →
           </Link>
@@ -78,7 +78,7 @@ export default function HomePage() {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent" />
             <div className="relative z-10 space-y-2">
-              <span className="text-[11px] font-mono uppercase tracking-widest text-yellow-400 font-bold">
+              <span className="text-[11px] font-mono uppercase tracking-widest text-amber-400 font-bold">
                 CULT CLASSICS
               </span>
               <h3 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white">
@@ -110,7 +110,7 @@ export default function HomePage() {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent" />
             <div className="relative z-10 space-y-2">
-              <span className="text-[11px] font-mono uppercase tracking-widest text-yellow-400 font-bold">
+              <span className="text-[11px] font-mono uppercase tracking-widest text-amber-400 font-bold">
                 TREND ALERT
               </span>
               <h3 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white">

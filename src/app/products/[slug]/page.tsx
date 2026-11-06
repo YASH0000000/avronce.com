@@ -15,11 +15,11 @@ export async function generateMetadata({ params }: ProductPageProps) {
   const { slug } = await params;
   const product = getProductBySlug(slug);
   if (!product) {
-    return { title: 'Product Not Found | LITTLEBOX INDIA' };
+    return { title: 'Product Not Found | AVRONCE' };
   }
   return {
-    title: `${product.title} | LITTLEBOX INDIA`,
-    description: `Buy ${product.title} online at best price in India. Free shipping above ₹999, cash on delivery & 7-day easy exchange available.`,
+    title: `${product.title} | AVRONCE`,
+    description: `Buy ${product.title} online at AVRONCE. Modern everyday luxury, free shipping above ₹999, cash on delivery & 7-day easy exchange.`,
   };
 }
 

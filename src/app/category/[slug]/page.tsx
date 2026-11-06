@@ -15,8 +15,8 @@ export async function generateMetadata({ params }: CategoryPageProps) {
     (c) => c.handle.toLowerCase() === slug.toLowerCase() || c.title.toLowerCase().includes(slug.toLowerCase())
   );
   return {
-    title: `${currentCategory?.title || 'Collection'} | LITTLEBOX INDIA`,
-    description: `Shop trending ${currentCategory?.title || slug} from Littlebox India. Free shipping above ₹999 & COD available.`,
+    title: `${currentCategory?.title || 'Collection'} | AVRONCE`,
+    description: `Shop trending ${currentCategory?.title || slug} from AVRONCE. Free shipping above ₹999 & COD available.`,
   };
 }
 
@@ -48,8 +48,8 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-transparent" />
         
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 sm:pb-12 w-full">
-          <span className="text-xs uppercase tracking-widest text-yellow-400 font-mono font-bold">
-            LITTLEBOX CATEGORY
+          <span className="text-xs uppercase tracking-widest text-amber-400 font-mono font-bold">
+            AVRONCE COLLECTION
           </span>
           <h1 className="text-3xl sm:text-5xl font-black uppercase text-white tracking-tight mt-1">
             {currentCategory?.title || slug}

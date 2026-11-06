@@ -24,15 +24,15 @@ export function InstaFeed() {
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="text-center space-y-2 mb-8">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-pink-100 dark:bg-pink-950/40 text-pink-600 dark:text-pink-400 rounded-full text-xs font-bold uppercase tracking-wider">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-400/10 text-amber-400 border border-amber-500/30 rounded-full text-xs font-bold uppercase tracking-wider">
           <InstagramIcon className="w-3.5 h-3.5" />
-          <span>#LittleboxFam</span>
+          <span>#AVRONCEAtelier</span>
         </div>
         <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-zinc-950 dark:text-white">
           As Seen On Instagram ✨
         </h2>
-        <p className="text-xs sm:text-sm text-zinc-500 max-w-md mx-auto">
-          Tag @littleboxindia on your fit-check reels and photos to get featured on our feed!
+        <p className="text-xs sm:text-sm text-zinc-400 max-w-md mx-auto">
+          Tag @avronce.official on your fit-check reels and photos to get featured on our feed!
         </p>
       </div>
 
@@ -40,11 +40,11 @@ export function InstaFeed() {
         {INSTA_IMAGES.map((item, i) => (
           <div
             key={i}
-            className="group relative aspect-square rounded-sm overflow-hidden bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xs"
+            className="group relative aspect-square rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800 shadow-sm"
           >
             <Image
               src={item.img}
-              alt="Littlebox Community Fit"
+              alt="AVRONCE Community Fit"
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
               className="object-cover transition-transform duration-500 group-hover:scale-110"

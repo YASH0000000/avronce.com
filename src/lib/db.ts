@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import crypto from 'node:crypto';
 
 const DB_PATH = path.join(process.cwd(), 'src', 'data', 'store-db.json');
 
@@ -115,6 +116,7 @@ export interface StoreDbSchema {
       instagram: string;
       facebook: string;
     };
+    searchConsoleVerification?: string;
   };
   cms: {
     announcements: string[];
@@ -141,6 +143,14 @@ export interface StoreDbSchema {
     standardShippingFee: number;
     codAvailable: boolean;
     taxPercent: number;
+  };
+  adminSecurity?: {
+    customPath: string;
+    username?: string;
+    passwordHash?: string;
+    salt?: string;
+    passwordProtected: boolean;
+    lastUpdated?: string;
   };
 }
 
@@ -512,4 +522,157 @@ export async function getDbStats() {
     lowStockProducts: lowStockProducts.slice(0, 5),
     recentOrders: db.orders.slice(0, 6),
   };
+}
+
+// ---------------- ADMIN SECURITY & AUTHENTICATION ----------------
+const SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || 'avronce_super_secure_admin_session_key_2026';
+
+export function hashAdminPassword(password: string, salt = crypto.randomBytes(16).toString('hex')): { hash: string; salt: string } {
+  const hash = crypto.scryptSync(password, salt, 64).toString('hex');
+  return { hash, salt };
+}
+
+export function verifyAdminPassword(password: string, salt: string, expectedHash: string): boolean {
+  if (!password || !salt || !expectedHash) return false;
+  const hash = crypto.scryptSync(password, salt, 64).toString('hex');
+  return crypto.timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(expectedHash, 'hex'));
+}
+
+export function generateAdminSessionToken(username: string): string {
+  const issuedAt = Date.now();
+  const payload = Buffer.from(JSON.stringify({ username, issuedAt })).toString('base64');
+  const signature = crypto.createHmac('sha256', SESSION_SECRET).update(payload).digest('hex');
+  return `${payload}.${signature}`;
+}
+
+export function verifyAdminSessionToken(token: string): { valid: boolean; username?: string } {
+  if (!token || !token.includes('.')) return { valid: false };
+  const [payloadBase64, signature] = token.split('.');
+  try {
+    const expectedSignature = crypto.createHmac('sha256', SESSION_SECRET).update(payloadBase64).digest('hex');
+    if (!crypto.timingSafeEqual(Buffer.from(signature, 'hex'), Buffer.from(expectedSignature, 'hex'))) {
+      return { valid: false };
+    }
+
+    const payload = JSON.parse(Buffer.from(payloadBase64, 'base64').toString('utf-8'));
+    // Valid for 7 days
+    if (Date.now() - payload.issuedAt > 7 * 24 * 60 * 60 * 1000) {
+      return { valid: false };
+    }
+
+    return { valid: true, username: payload.username };
+  } catch {
+    return { valid: false };
+  }
+}
+
+export async function getDbAdminSecurity() {
+  const db = await readDb();
+  if (!db.adminSecurity) {
+    // Initialize defaults
+    const { hash, salt } = hashAdminPassword('admin');
+    db.adminSecurity = {
+      customPath: 'admin-avronce',
+      username: 'admin@avronce.com',
+      passwordHash: hash,
+      salt: salt,
+      passwordProtected: true,
+      lastUpdated: new Date().toISOString(),
+    };
+    await writeDb(db);
+  } else if (!db.adminSecurity.passwordHash) {
+    // If password was stored as plain text before, hash it now securely
+    const rawPwd = (db.adminSecurity as any).password || 'admin';
+    const { hash, salt } = hashAdminPassword(rawPwd);
+    db.adminSecurity.passwordHash = hash;
+    db.adminSecurity.salt = salt;
+    delete (db.adminSecurity as any).password;
+    if (!db.adminSecurity.username) db.adminSecurity.username = 'admin@avronce.com';
+    await writeDb(db);
+  }
+
+  return {
+    customPath: db.adminSecurity.customPath || 'admin-avronce',
+    username: db.adminSecurity.username || 'admin@avronce.com',
+    passwordProtected: db.adminSecurity.passwordProtected !== false,
+    lastUpdated: db.adminSecurity.lastUpdated,
+  };
+}
+
+export async function updateDbAdminSecurity(updates: {
+  customPath?: string;
+  username?: string;
+  currentPassword?: string;
+  newPassword?: string;
+  passwordProtected?: boolean;
+}): Promise<{ success: boolean; error?: string; customPath?: string }> {
+  const db = await readDb();
+  if (!db.adminSecurity) {
+    await getDbAdminSecurity();
+  }
+
+  const sec = db.adminSecurity!;
+
+  // If changing password, verify current password
+  if (updates.newPassword) {
+    if (!updates.currentPassword) {
+      return { success: false, error: 'Current password is required to set a new password' };
+    }
+
+    const isMatch = verifyAdminPassword(updates.currentPassword, sec.salt || '', sec.passwordHash || '');
+    if (!isMatch) {
+      return { success: false, error: 'Current password is incorrect' };
+    }
+
+    if (updates.newPassword.length < 5) {
+      return { success: false, error: 'New password must be at least 5 characters long' };
+    }
+
+    const { hash, salt } = hashAdminPassword(updates.newPassword);
+    sec.passwordHash = hash;
+    sec.salt = salt;
+  }
+
+  if (updates.customPath) {
+    // Clean path slug
+    const cleanPath = updates.customPath.toLowerCase().replace(/[^a-z0-9-_]/g, '').trim();
+    if (!cleanPath) {
+      return { success: false, error: 'Invalid admin path slug' };
+    }
+    sec.customPath = cleanPath;
+  }
+
+  if (updates.username) {
+    sec.username = updates.username.trim();
+  }
+
+  if (updates.passwordProtected !== undefined) {
+    sec.passwordProtected = updates.passwordProtected;
+  }
+
+  sec.lastUpdated = new Date().toISOString();
+  await writeDb(db);
+
+  return { success: true, customPath: sec.customPath };
+}
+
+export async function authenticateAdmin(password: string): Promise<{ success: boolean; username?: string; token?: string }> {
+  const db = await readDb();
+  if (!db.adminSecurity) {
+    await getDbAdminSecurity();
+  }
+
+  const sec = db.adminSecurity!;
+  if (!sec.passwordProtected) {
+    const token = generateAdminSessionToken(sec.username || 'admin@avronce.com');
+    return { success: true, username: sec.username || 'admin@avronce.com', token };
+  }
+
+  const isMatch = verifyAdminPassword(password, sec.salt || '', sec.passwordHash || '');
+  if (!isMatch) {
+    return { success: false };
+  }
+
+  const token = generateAdminSessionToken(sec.username || 'admin@avronce.com');
+  return { success: true, username: sec.username || 'admin@avronce.com', token };
 }

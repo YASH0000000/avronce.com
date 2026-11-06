@@ -38,9 +38,9 @@ export function MoodSection({ moods, allProducts }: MoodSectionProps) {
       {/* Section Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 text-xs uppercase font-mono font-bold tracking-widest text-zinc-500 mb-1">
-            <Sparkles className="w-3.5 h-3.5 text-yellow-500" />
-            <span>LITTLEBOX EXCLUSIVE</span>
+          <div className="inline-flex items-center gap-1.5 text-xs uppercase font-mono font-bold tracking-widest text-amber-400 mb-1">
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <span>AVRONCE EXCLUSIVE</span>
           </div>
           <h2 className="text-2xl sm:text-4xl font-black uppercase tracking-tight text-zinc-950 dark:text-white">
             Shop By Mood 💅
@@ -57,7 +57,7 @@ export function MoodSection({ moods, allProducts }: MoodSectionProps) {
                 onClick={() => setActiveMoodId(mood.id)}
                 className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider whitespace-nowrap transition-all shadow-xs ${
                   isActive
-                    ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 scale-105'
+                    ? 'bg-amber-400 text-zinc-950 shadow-md font-bold scale-105'
                     : 'bg-zinc-100 dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800'
                 }`}
               >

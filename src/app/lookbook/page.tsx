@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { ArrowUpRight, Sparkles } from 'lucide-react';
 
 export const metadata = {
-  title: 'Lookbook & Style Inspirations | LITTLEBOX INDIA',
-  description: 'Explore viral fit checks, outfit pairings, and style guides featuring Littlebox chunky boots, party dresses, and Y2K streetwear.',
+  title: 'Lookbook & Style Inspirations | AVRONCE',
+  description: 'Explore signature styling edits, outfit pairings, and style guides featuring AVRONCE chunky boots, luxury party dresses, and contemporary streetwear.',
 };
 
 const lookbookItems = [

@@ -28,7 +28,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
   const { addItem } = useCart();
 
   // Normalize data
-  const title = product.title || product.name || 'Littlebox Item';
+  const title = product.title || product.name || 'AVRONCE Item';
   const price = Number(product.price || 999);
   const originalPrice = Number(product.originalPrice || product.compare_at_price || Math.round(price * 1.55));
   const discountPercent =
@@ -309,7 +309,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
           <div className="bg-white dark:bg-zinc-900 text-zinc-950 dark:text-white rounded-sm p-6 max-w-lg w-full space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-3">
-              <h3 className="text-base font-bold uppercase tracking-wider">Littlebox Size Guide</h3>
+              <h3 className="text-base font-bold uppercase tracking-wider text-amber-400">AVRONCE Size Guide</h3>
               <button onClick={() => setSizeGuideOpen(false)}>
                 <X className="w-5 h-5 text-zinc-500 hover:text-zinc-950" />
               </button>

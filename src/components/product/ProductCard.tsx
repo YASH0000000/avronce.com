@@ -37,7 +37,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
     product.discountPercent || (originalPrice > price ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0);
 
   // Normalize title and slug
-  const title = product.title || product.name || 'Littlebox Item';
+  const title = product.title || product.name || 'AVRONCE Item';
   const slug = product.slug || product.handle || product.id;
   const rating = product.rating || '4.8';
   const reviewsCount = product.reviewsCount || 128;

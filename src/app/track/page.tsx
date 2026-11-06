@@ -40,9 +40,44 @@ function TrackOrderContent() {
     const clean = targetQuery.trim();
 
     try {
+      // 1. Try local store-db.json API first for instant real-time sync
+      try {
+        const localRes = await fetch(`/api/orders?order_number=${encodeURIComponent(clean)}`);
+        const localData = await localRes.json();
+        if (localRes.ok && localData.success && localData.order) {
+          const ord = localData.order;
+          setOrder({
+            id: ord.id,
+            order_number: ord.order_number,
+            status: ord.status,
+            customer_email: ord.customer?.email,
+            created_at: ord.created_at,
+            shipping_address: ord.shipping_address,
+            total_amount: ord.total_amount,
+            razorpay_payment_id: ord.razorpay_payment_id,
+            tracking_id: ord.tracking_id,
+            courier: ord.courier,
+          });
+          setOrderItems(
+            (ord.items || []).map((i: any) => ({
+              id: i.id,
+              product_name: i.name,
+              product_image: i.image,
+              size: i.size,
+              quantity: i.quantity,
+              total: i.price * i.quantity,
+            }))
+          );
+          setLoading(false);
+          return;
+        }
+      } catch (e) {
+        // Continue to Supabase or fallback
+      }
+
       let supabaseQuery = supabase.from('orders').select('*');
 
-      if (clean.toUpperCase().startsWith('LB-') || clean.toUpperCase().startsWith('AVR-')) {
+      if (clean.toUpperCase().startsWith('AVR-') || clean.toUpperCase().startsWith('LB-')) {
         supabaseQuery = supabaseQuery.ilike('order_number', `%${clean}%`);
       } else if (clean.includes('@')) {
         supabaseQuery = supabaseQuery.ilike('customer_email', clean);
@@ -56,12 +91,12 @@ function TrackOrderContent() {
         .maybeSingle();
 
       if (error || !data) {
-        // Fallback demo order preview for Littlebox testers
+        // Fallback demo order preview for AVRONCE testers
         setOrder({
           id: 'demo-order-1',
-          order_number: clean.toUpperCase().startsWith('LB-') ? clean.toUpperCase() : `LB-${Math.floor(100000 + Math.random() * 900000)}`,
+          order_number: clean.toUpperCase().startsWith('AVR-') ? clean.toUpperCase() : `AVR-${Math.floor(10000 + Math.random() * 90000)}`,
           status: 'shipped',
-          customer_email: clean.includes('@') ? clean : 'customer@littleboxindia.com',
+          customer_email: clean.includes('@') ? clean : 'customer@avronce.com',
           created_at: new Date(Date.now() - 2 * 86400000).toISOString(),
           shipping_address: {
             fullName: 'Ananya Sharma',
@@ -73,7 +108,9 @@ function TrackOrderContent() {
             country: 'India',
           },
           total_amount: 2448,
-          razorpay_payment_id: 'pay_sim_littlebox_9941',
+          razorpay_payment_id: 'pay_sim_avronce_9941',
+          tracking_id: 'BD-84910284',
+          courier: 'BlueDart Express',
         });
         setOrderItems([
           {
@@ -148,14 +185,14 @@ function TrackOrderContent() {
       
       {/* Header */}
       <div className="text-center space-y-2">
-        <span className="text-xs uppercase tracking-widest text-zinc-500 font-mono font-bold">
-          LITTLEBOX TRACKING
+        <span className="text-xs uppercase tracking-widest text-amber-400 font-mono font-bold">
+          AVRONCE ORDER TRACKING
         </span>
         <h1 className="text-3xl sm:text-5xl font-black uppercase text-zinc-950 dark:text-white tracking-tight">
-          Track Your Package 🚚
+          Track Your Delivery 🚚
         </h1>
         <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 max-w-md mx-auto">
-          Enter your Littlebox Order ID (e.g. <strong className="font-mono text-zinc-900 dark:text-white">LB-948122</strong>) or registered 10-digit mobile number.
+          Enter your AVRONCE Order ID (e.g. <strong className="font-mono text-zinc-900 dark:text-white">AVR-89214</strong>) or registered 10-digit mobile number.
         </p>
       </div>
 
@@ -168,14 +205,14 @@ function TrackOrderContent() {
             required
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Order ID (e.g. LB-948122) or phone number"
-            className="w-full bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 text-xs text-zinc-900 dark:text-white pl-10 pr-4 py-3.5 rounded-xs focus:outline-none focus:border-zinc-950 font-mono"
+            placeholder="Order ID (e.g. AVR-89214) or phone number"
+            className="w-full bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 text-xs text-zinc-900 dark:text-white pl-10 pr-4 py-3.5 rounded-xl focus:outline-none focus:border-amber-500 font-mono"
           />
         </div>
         <button
           type="submit"
           disabled={loading}
-          className="px-6 py-3.5 bg-zinc-950 text-white dark:bg-white dark:text-zinc-950 font-bold text-xs uppercase tracking-wider rounded-xs hover:opacity-90 disabled:opacity-50"
+          className="px-6 py-3.5 bg-gradient-to-r from-amber-400 to-amber-500 text-zinc-950 font-bold text-xs uppercase tracking-wider rounded-xl hover:from-amber-300 hover:to-amber-400 disabled:opacity-50 shadow"
         >
           {loading ? 'Tracking...' : 'Track'}
         </button>
@@ -246,7 +283,7 @@ function TrackOrderContent() {
           {/* Items in this order */}
           <div className="space-y-3 pt-3 border-t border-zinc-200 dark:border-zinc-800">
             <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
-              Items in Your Littlebox Delivery
+              Items in Your AVRONCE Delivery
             </h4>
             <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
               {orderItems.map((item) => (
@@ -329,7 +366,7 @@ export default function TrackOrderPage() {
   return (
     <Suspense fallback={
       <div className="min-h-[50vh] flex items-center justify-center text-zinc-500 text-xs uppercase tracking-widest font-mono">
-        Loading Littlebox Tracker...
+        Loading AVRONCE Tracker...
       </div>
     }>
       <TrackOrderContent />

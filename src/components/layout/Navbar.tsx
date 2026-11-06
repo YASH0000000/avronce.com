@@ -116,11 +116,11 @@ export function Navbar() {
 
             {/* Admin Portal Shortcut */}
             <Link
-              href="/admin"
-              className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-mono font-bold uppercase tracking-wider text-yellow-300 bg-zinc-900 border border-yellow-400/30 hover:border-yellow-400 rounded-xs transition-colors"
+              href="/admin-avronce"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-mono font-bold uppercase tracking-wider text-amber-300 bg-zinc-900 border border-amber-500/30 hover:border-amber-400 rounded-lg transition-colors shadow-sm"
               title="Open AVRONCE Business Admin Panel"
             >
-              <ShieldCheck className="w-3.5 h-3.5" />
+              <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
               <span>Admin</span>
             </Link>
 
@@ -236,12 +236,12 @@ export function Navbar() {
                 </Link>
 
                 <Link
-                  href="/admin"
+                  href="/admin-avronce"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center justify-between text-sm uppercase tracking-wider font-bold text-yellow-300 py-3 border-b border-zinc-900"
+                  className="flex items-center justify-between text-sm uppercase tracking-wider font-bold text-amber-300 py-3 border-b border-zinc-900"
                 >
                   <span>Admin Dashboard</span>
-                  <ShieldCheck className="w-4 h-4 text-yellow-400" />
+                  <ShieldCheck className="w-4 h-4 text-amber-400" />
                 </Link>
               </div>
 

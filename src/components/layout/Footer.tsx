@@ -31,7 +31,7 @@ export function Footer() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-6 space-y-2">
-              <span className="text-yellow-400 font-mono text-xs font-bold uppercase tracking-widest flex items-center gap-1.5">
+              <span className="text-amber-400 font-mono text-xs font-bold uppercase tracking-widest flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>EXCLUSIVE AVRONCE CLUB</span>
               </span>
@@ -55,11 +55,11 @@ export function Footer() {
                   type="email"
                   required
                   placeholder="Enter your email address..."
-                  className="flex-1 bg-zinc-950 border border-zinc-700 text-sm text-white px-4 py-3 placeholder:text-zinc-500 focus:outline-none focus:border-yellow-400 rounded-xs"
+                  className="flex-1 bg-zinc-950 border border-zinc-700 text-sm text-white px-4 py-3 placeholder:text-zinc-500 focus:outline-none focus:border-amber-400 rounded-xl"
                 />
                 <button
                   type="submit"
-                  className="px-6 py-3 bg-yellow-400 text-zinc-950 font-black text-xs uppercase tracking-wider hover:bg-yellow-300 transition-colors rounded-xs shrink-0 flex items-center justify-center gap-2"
+                  className="px-6 py-3 bg-gradient-to-r from-amber-400 to-amber-500 text-zinc-950 font-bold text-xs uppercase tracking-wider hover:from-amber-300 hover:to-amber-400 transition-all rounded-xl shrink-0 flex items-center justify-center gap-2 shadow"
                 >
                   <span>Claim ₹200</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -116,32 +116,32 @@ export function Footer() {
             </h4>
             <ul className="space-y-2 text-xs text-zinc-400">
               <li>
-                <Link href="/category/boots" className="hover:text-yellow-400 transition-colors">
+                <Link href="/category/boots" className="hover:text-amber-400 transition-colors">
                   Chunky Lug-Sole Boots
                 </Link>
               </li>
               <li>
-                <Link href="/category/flats" className="hover:text-yellow-400 transition-colors">
+                <Link href="/category/flats" className="hover:text-amber-400 transition-colors">
                   Mary Jane Ballet Flats
                 </Link>
               </li>
               <li>
-                <Link href="/category/heels" className="hover:text-yellow-400 transition-colors">
+                <Link href="/category/heels" className="hover:text-amber-400 transition-colors">
                   Platform Heels & Flatforms
                 </Link>
               </li>
               <li>
-                <Link href="/category/dressup15" className="hover:text-yellow-400 transition-colors">
+                <Link href="/category/dressup15" className="hover:text-amber-400 transition-colors">
                   Romantic Party Dresses
                 </Link>
               </li>
               <li>
-                <Link href="/category/tops15" className="hover:text-yellow-400 transition-colors">
+                <Link href="/category/tops15" className="hover:text-amber-400 transition-colors">
                   Corset Tops & Y2K Fits
                 </Link>
               </li>
               <li>
-                <Link href="/category/matching-sets" className="hover:text-yellow-400 transition-colors">
+                <Link href="/category/matching-sets" className="hover:text-amber-400 transition-colors">
                   Matching Coords & Sets
                 </Link>
               </li>
@@ -155,7 +155,7 @@ export function Footer() {
             </h4>
             <ul className="space-y-2 text-xs text-zinc-400">
               <li>
-                <Link href="/track" className="hover:text-yellow-400 transition-colors font-bold text-yellow-400">
+                <Link href="/track" className="hover:text-amber-300 transition-colors font-bold text-amber-400">
                   Track Your Package 🚚
                 </Link>
               </li>
@@ -180,7 +180,7 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/admin" className="hover:text-yellow-300 transition-colors font-mono font-semibold">
+                <Link href="/admin-avronce" className="hover:text-amber-300 transition-colors font-mono font-semibold text-amber-400">
                   Admin Dashboard Portal
                 </Link>
               </li>

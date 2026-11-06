@@ -1,8 +1,9 @@
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 
-const key_id = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_51AvronceDevKey';
+const key_id = process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_51AvronceDevKey';
 const key_secret = process.env.RAZORPAY_KEY_SECRET || 'dev_secret_avronce_testing_9921';
+const webhook_secret = process.env.RAZORPAY_WEBHOOK_SECRET || 'avronce_live_webhook_secret_2026';
 
 // Server-side Razorpay SDK instance
 export const razorpayInstance = new Razorpay({
@@ -11,7 +12,7 @@ export const razorpayInstance = new Razorpay({
 });
 
 /**
- * Verify Razorpay HMAC-SHA256 signature
+ * Verify Razorpay HMAC-SHA256 signature for client checkout completion
  */
 export function verifyRazorpaySignature({
   orderId,
@@ -24,7 +25,7 @@ export function verifyRazorpaySignature({
 }): boolean {
   if (!signature || !orderId || !paymentId) return false;
 
-  // In test / simulation mode, accept simulated signature if starting with test_
+  // In test / simulation mode, accept simulated signature if starting with pay_sim_
   if (paymentId.startsWith('pay_sim_') || signature === 'simulated_signature_avronce') {
     return true;
   }
@@ -39,6 +40,36 @@ export function verifyRazorpaySignature({
     return generatedSignature === signature;
   } catch (err) {
     console.error('Error verifying Razorpay signature:', err);
+    return false;
+  }
+}
+
+/**
+ * Verify Razorpay Webhook signature against raw request body
+ */
+export function verifyRazorpayWebhookSignature({
+  rawBody,
+  signature,
+  secret = webhook_secret,
+}: {
+  rawBody: string;
+  signature: string;
+  secret?: string;
+}): boolean {
+  if (!rawBody || !signature || !secret) return false;
+
+  try {
+    const expectedSignature = crypto
+      .createHmac('sha256', secret)
+      .update(rawBody)
+      .digest('hex');
+
+    return crypto.timingSafeEqual(
+      Buffer.from(expectedSignature, 'utf-8'),
+      Buffer.from(signature, 'utf-8')
+    );
+  } catch (err) {
+    console.error('Error verifying Razorpay webhook signature:', err);
     return false;
   }
 }

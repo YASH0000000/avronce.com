@@ -59,14 +59,14 @@ export function CartDrawer() {
           {/* 1. Header */}
           <div className="p-4 sm:p-5 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <ShoppingBag className="w-5 h-5 text-zinc-950 dark:text-white" />
-              <h2 className="text-base font-black uppercase tracking-wider">
-                Your Littlebox Bag ({items.reduce((s, i) => s + i.quantity, 0)})
+              <ShoppingBag className="w-5 h-5 text-amber-400" />
+              <h2 className="text-base font-black uppercase tracking-wider text-white">
+                Your AVRONCE Bag ({items.reduce((s, i) => s + i.quantity, 0)})
               </h2>
             </div>
             <button
               onClick={closeCart}
-              className="p-1.5 text-zinc-400 hover:text-zinc-950 dark:hover:text-white rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
+              className="p-1.5 text-zinc-400 hover:text-white rounded-full hover:bg-zinc-800 transition-colors"
               aria-label="Close Cart"
             >
               <X className="w-5 h-5" />
@@ -74,10 +74,10 @@ export function CartDrawer() {
           </div>
 
           {/* 2. Free Shipping Progress Bar */}
-          <div className="bg-zinc-100 dark:bg-zinc-900 px-4 py-3 border-b border-zinc-200 dark:border-zinc-800">
+          <div className="bg-zinc-900 px-4 py-3 border-b border-zinc-800">
             <div className="flex items-center justify-between text-xs font-bold mb-1.5">
-              <span className="flex items-center gap-1.5 text-zinc-800 dark:text-zinc-200">
-                <Truck className="w-3.5 h-3.5 text-yellow-500" />
+              <span className="flex items-center gap-1.5 text-zinc-200">
+                <Truck className="w-3.5 h-3.5 text-amber-400" />
                 {amountNeededForFreeShipping === 0 ? (
                   <span className="text-emerald-600 dark:text-emerald-400 font-extrabold">
                     🎉 You unlocked FREE Shipping across India!

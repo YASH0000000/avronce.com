@@ -201,8 +201,8 @@ export default function CheckoutPage() {
         key: orderData.key || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_51AvronceDevKey',
         amount: orderData.amount,
         currency: orderData.currency || 'INR',
-        name: 'LITTLEBOX INDIA',
-        description: 'Trendy Footwear & Apparel Order',
+        name: 'AVRONCE',
+        description: 'Modern Everyday Luxury & Footwear Order',
         order_id: orderData.id,
         prefill: {
           name: formData.fullName,
@@ -579,10 +579,10 @@ export default function CheckoutPage() {
               </div>
 
               {/* Assurance Box */}
-              <div className="bg-zinc-950 p-3.5 border border-zinc-800 text-[11px] text-zinc-400 space-y-1 rounded-xs">
+              <div className="bg-zinc-950 p-3.5 border border-zinc-800 text-[11px] text-zinc-400 space-y-1 rounded-xl">
                 <div className="flex items-center gap-1.5 text-zinc-200 font-bold">
-                  <Truck className="w-3.5 h-3.5 text-yellow-400" />
-                  <span>Littlebox Express Delivery Guarantee</span>
+                  <Truck className="w-3.5 h-3.5 text-amber-400" />
+                  <span>AVRONCE Express Delivery Guarantee</span>
                 </div>
                 <p>Includes 7-day easy size exchange and doorstep replacement.</p>
               </div>

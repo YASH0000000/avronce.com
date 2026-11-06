@@ -13,9 +13,9 @@ import {
   Truck, 
   MapPin, 
   Printer, 
-  ArrowRight,
-  ShieldCheck,
-  Calendar
+  ArrowRight, 
+  ShieldCheck, 
+  Calendar 
 } from 'lucide-react';
 
 export default function OrderSuccessPage() {
@@ -27,7 +27,7 @@ export default function OrderSuccessPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fire confetti celebratory burst
+    // Fire celebratory confetti
     try {
       confetti({
         particleCount: 80,
@@ -35,32 +35,65 @@ export default function OrderSuccessPage() {
         origin: { y: 0.6 },
         colors: ['#ffffff', '#e4e4e7', '#a1a1aa', '#18181b'],
       });
-    } catch (e) {
-      // ignore
-    }
+    } catch (e) {}
 
     async function fetchOrder() {
       if (!orderId) return;
 
-      const { data: orderData, error: orderErr } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('id', orderId)
-        .single();
+      try {
+        const decodedId = decodeURIComponent(orderId);
 
-      if (orderData) {
-        setOrder(orderData);
+        // 1. Try central API first
+        try {
+          const apiRes = await fetch(`/api/orders?order_number=${encodeURIComponent(decodedId)}`);
+          const apiData = await apiRes.json();
+          if (apiRes.ok && apiData.success && apiData.order) {
+            setOrder(apiData.order);
+            if (apiData.order.items) {
+              setItems(
+                apiData.order.items.map((it: any) => ({
+                  id: it.id || `item-${Date.now()}`,
+                  product_name: it.product_name || it.name,
+                  product_image: it.product_image || it.image || '/images/collections/cat_boots.webp',
+                  size: it.size || 'Standard',
+                  color_name: it.color_name || (it as any).colorName || 'Standard',
+                  quantity: it.quantity || 1,
+                  total: it.total || (it.price * (it.quantity || 1)),
+                }))
+              );
+            }
+            setLoading(false);
+            return;
+          }
+        } catch {}
 
-        const { data: itemsData } = await supabase
-          .from('order_items')
-          .select('*')
-          .eq('order_id', orderId);
-
-        if (itemsData) {
-          setItems(itemsData);
+        // 2. Direct Supabase Query by order_number or UUID
+        let sbQuery = supabase.from('orders').select('*');
+        if (decodedId.toUpperCase().startsWith('AVR-')) {
+          sbQuery = sbQuery.eq('order_number', decodedId);
+        } else {
+          sbQuery = sbQuery.or(`id.eq.${decodedId},order_number.eq.${decodedId}`);
         }
+
+        const { data: orderData } = await sbQuery.maybeSingle();
+
+        if (orderData) {
+          setOrder(orderData);
+
+          const { data: itemsData } = await supabase
+            .from('order_items')
+            .select('*')
+            .eq('order_id', orderData.id);
+
+          if (itemsData && itemsData.length > 0) {
+            setItems(itemsData);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching order receipt:', err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
 
     fetchOrder();
@@ -74,10 +107,12 @@ export default function OrderSuccessPage() {
     return (
       <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-6">
         <Logo variant="combined" size="md" className="animate-pulse mb-4" />
-        <p className="text-xs uppercase tracking-widest text-zinc-400">Loading Your Order...</p>
+        <p className="text-xs uppercase tracking-widest text-zinc-400 font-mono">Loading Your Order...</p>
       </div>
     );
   }
+
+  const activeOrderNumber = order?.order_number || orderId;
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 py-12 px-4 sm:px-6 lg:px-8">
@@ -102,7 +137,7 @@ export default function OrderSuccessPage() {
           </div>
 
           <span className="text-xs font-mono uppercase tracking-[0.2em] text-emerald-400 font-semibold">
-            Order Confirmed • Payment Successful
+            {order?.payment_status === 'paid' ? 'Order Confirmed • Payment Successful' : 'Order Placed • Cash On Delivery'}
           </span>
 
           <h1 className="font-serif text-3xl sm:text-4xl font-normal text-white">
@@ -110,7 +145,7 @@ export default function OrderSuccessPage() {
           </h1>
 
           <p className="text-xs text-zinc-300 max-w-md mx-auto leading-relaxed">
-            Your Order ID is <strong className="text-white font-mono">{order?.order_number || orderId}</strong>. We have sent the confirmation and receipt to <span className="text-white font-medium">{order?.customer_email || 'your email'}</span>.
+            Your Order ID is <strong className="text-white font-mono">{activeOrderNumber}</strong>. We have sent the confirmation and receipt to <span className="text-white font-medium">{order?.customer_email || order?.customer?.email || 'your email'}</span>.
           </p>
 
           <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-300 font-mono">
@@ -121,9 +156,14 @@ export default function OrderSuccessPage() {
 
         {/* Tracking Timeline */}
         <div className="bg-zinc-900/30 border border-zinc-800/80 p-6 rounded-sm space-y-4">
-          <h3 className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
-            Fulfillment Journey
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-semibold uppercase tracking-widest text-zinc-400">
+              Fulfillment Journey
+            </h3>
+            <span className="text-xs font-mono text-zinc-400">
+              Courier: <strong className="text-white">{order?.courier || 'BlueDart Express'}</strong>
+            </span>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-center sm:text-left">
             <div className="p-3 bg-zinc-950 border border-zinc-800 rounded">
               <span className="text-[10px] text-emerald-400 font-mono block mb-1">01. COMPLETED</span>
@@ -168,12 +208,12 @@ export default function OrderSuccessPage() {
                   <div>
                     <h4 className="text-xs font-medium text-white">{item.product_name}</h4>
                     <div className="text-[11px] text-zinc-400 font-mono mt-0.5">
-                      <span>Size: {item.size}</span> • <span>Shade: {item.color_name}</span> • <span>Qty: {item.quantity}</span>
+                      <span>Size: {item.size}</span> • <span>Qty: {item.quantity}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="text-xs font-semibold text-white">
+                <div className="text-xs font-semibold text-white font-mono">
                   ₹{Number(item.total).toLocaleString('en-IN')}
                 </div>
               </div>
@@ -183,21 +223,21 @@ export default function OrderSuccessPage() {
           <div className="border-t border-zinc-800 pt-4 space-y-1.5 text-xs text-zinc-400">
             <div className="flex justify-between">
               <span>Subtotal</span>
-              <span className="text-white">₹{Number(order?.subtotal || 0).toLocaleString('en-IN')}</span>
+              <span className="text-white font-mono">₹{Number(order?.subtotal || 0).toLocaleString('en-IN')}</span>
             </div>
             {order?.discount_amount > 0 && (
               <div className="flex justify-between text-emerald-400">
-                <span>Promotional Concession</span>
-                <span>-₹{Number(order.discount_amount).toLocaleString('en-IN')}</span>
+                <span>Promotional Discount</span>
+                <span className="font-mono">-₹{Number(order.discount_amount).toLocaleString('en-IN')}</span>
               </div>
             )}
             <div className="flex justify-between">
               <span>Express Delivery</span>
-              <span>{order?.shipping_fee === 0 ? 'COMPLIMENTARY' : `₹${order?.shipping_fee}`}</span>
+              <span className="font-mono">{order?.shipping_fee === 0 ? 'FREE' : `₹${order?.shipping_fee}`}</span>
             </div>
             <div className="flex justify-between items-baseline pt-3 border-t border-zinc-800 text-sm font-semibold text-white">
-              <span>Total Paid</span>
-              <span className="font-serif text-xl">₹{Number(order?.total_amount || 0).toLocaleString('en-IN')}</span>
+              <span>Total Payable</span>
+              <span className="font-serif text-xl font-mono">₹{Number(order?.total_amount || 0).toLocaleString('en-IN')}</span>
             </div>
           </div>
         </div>
@@ -226,10 +266,10 @@ export default function OrderSuccessPage() {
             Continue Browsing
           </Link>
           <Link
-            href="/track"
+            href={`/track?order=${encodeURIComponent(activeOrderNumber)}`}
             className="w-full sm:w-auto px-6 py-3.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-600 text-zinc-300 font-medium text-xs uppercase tracking-[0.2em] rounded-sm transition-colors text-center"
           >
-            Track Real-time Status
+            Track Real-time Status →
           </Link>
         </div>
 

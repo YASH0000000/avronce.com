@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createDbOrder, getDbOrders } from '@/lib/db';
+import { createDbOrder, getDbOrders, getDbOrderByIdOrNumber } from '@/lib/db';
 
 export async function POST(request: Request) {
   try {
@@ -18,18 +18,42 @@ export async function POST(request: Request) {
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const orderNumber = searchParams.get('order_number');
-    const orders = await getDbOrders();
+    const orderNumber = searchParams.get('order_number') || searchParams.get('id');
+    const customerVerify = searchParams.get('verify')?.trim().toLowerCase();
 
     if (orderNumber) {
-      const match = orders.find((o) => o.order_number.toLowerCase() === orderNumber.toLowerCase());
+      const match = await getDbOrderByIdOrNumber(orderNumber);
       if (!match) {
         return NextResponse.json({ success: false, error: 'Order not found' }, { status: 404 });
       }
+
+      // Privacy check if verify query is provided
+      if (customerVerify) {
+        const emailMatch = match.customer?.email?.toLowerCase() === customerVerify;
+        const phoneMatch = match.customer?.phone?.replace(/\D/g, '').includes(customerVerify.replace(/\D/g, ''));
+        const shippingEmailMatch = match.shipping_address?.email?.toLowerCase() === customerVerify;
+        const shippingPhoneMatch = match.shipping_address?.phone?.replace(/\D/g, '').includes(customerVerify.replace(/\D/g, ''));
+
+        if (!emailMatch && !phoneMatch && !shippingEmailMatch && !shippingPhoneMatch) {
+          return NextResponse.json(
+            { success: false, error: 'Order verification failed: contact details do not match order records.' },
+            { status: 403 }
+          );
+        }
+      }
+
       return NextResponse.json({ success: true, order: match });
     }
 
-    return NextResponse.json({ success: true, orders });
+    // Require admin token if attempting to enumerate all orders without an order number
+    const authHeader = request.headers.get('Authorization') || request.headers.get('x-admin-token');
+    const token = authHeader?.replace('Bearer ', '');
+    if (!token || token !== 'admin-session-active') {
+      return NextResponse.json({ success: false, error: 'Order number is required' }, { status: 400 });
+    }
+
+    const orders = await getDbOrders();
+    return NextResponse.json({ success: true, count: orders.length, orders });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }

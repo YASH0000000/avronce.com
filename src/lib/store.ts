@@ -88,35 +88,45 @@ const data = storeDb as unknown as {
   products: LittleboxProduct[];
 };
 
+function getActiveData() {
+  if (typeof globalThis !== 'undefined' && (globalThis as any).__avronce_db_cache__) {
+    return (globalThis as any).__avronce_db_cache__ as typeof data;
+  }
+  return data;
+}
+
 export function getBrand(): LittleboxBrand {
-  return data.brand;
+  return (getActiveData().brand as any) || data.brand;
 }
 
 export function getCms() {
-  return data.cms;
+  return getActiveData().cms || data.cms;
 }
 
 export function getCollections(): LittleboxCollection[] {
-  return data.featuredCollections;
+  return (getActiveData().featuredCollections as any) || data.featuredCollections;
 }
 
 export function getMoods(): LittleboxMood[] {
-  return data.moodCollections;
+  return (getActiveData().moodCollections as any) || data.moodCollections;
 }
 
 export function getAllProducts(): LittleboxProduct[] {
-  return data.products.filter((p) => p.status !== 'archived');
+  const products = (getActiveData().products || []) as unknown as LittleboxProduct[];
+  return products.filter((p) => p.status !== 'archived');
 }
 
 export function getProductBySlug(slug: string): LittleboxProduct | null {
-  const p = data.products.find(
+  const products = (getActiveData().products || []) as unknown as LittleboxProduct[];
+  const p = products.find(
     (item) => item.slug.toLowerCase() === slug.toLowerCase() || item.handle.toLowerCase() === slug.toLowerCase() || item.id === slug
   );
   return p || null;
 }
 
 export function getProductsByCategory(category: string, limit?: number): LittleboxProduct[] {
-  const filtered = data.products
+  const products = (getActiveData().products || []) as unknown as LittleboxProduct[];
+  const filtered = products
     .filter((p) => p.status !== 'archived')
     .filter(
       (p) =>

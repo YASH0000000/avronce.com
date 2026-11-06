@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import crypto from 'node:crypto';
+import { createServerSupabase } from '@/lib/supabase/server';
 
 const SOURCE_DB_PATH = path.join(process.cwd(), 'src', 'data', 'store-db.json');
 const RUNTIME_DB_PATH = path.join(os.tmpdir(), 'avronce-store-db.json');
@@ -55,10 +56,13 @@ export interface CategoryItem {
 export interface OrderItemRecord {
   id: string;
   order_number: string;
-  status: 'pending' | 'confirmed' | 'processing' | 'packed' | 'shipped' | 'delivered' | 'cancelled';
-  payment_status: 'paid' | 'pending' | 'failed' | 'refunded';
+  status: 'pending_payment' | 'pending' | 'confirmed' | 'processing' | 'packed' | 'shipped' | 'delivered' | 'cancelled';
+  payment_status: 'paid' | 'pending' | 'failed' | 'refunded' | 'captured';
   payment_method: string;
+  razorpay_order_id?: string;
   razorpay_payment_id?: string;
+  razorpay_signature?: string;
+  tracking_token?: string;
   tracking_id?: string;
   courier?: string;
   customer: {
@@ -93,7 +97,9 @@ export interface OrderItemRecord {
   shipping_fee: number;
   tax_amount: number;
   total_amount: number;
+  notes?: string;
   created_at: string;
+  updated_at?: string;
 }
 
 export interface CouponItem {
@@ -316,60 +322,276 @@ export async function updateDbStock(id: string, stock: number): Promise<ProductI
 // ---------------- ORDERS ----------------
 export async function getDbOrders(): Promise<OrderItemRecord[]> {
   const db = await readDb();
-  return db.orders;
+
+  try {
+    const supabase = createServerSupabase();
+    const { data: sbOrders, error: sbErr } = await supabase
+      .from('orders')
+      .select('*, items:order_items(*)')
+      .order('created_at', { ascending: false });
+
+    if (!sbErr && sbOrders && Array.isArray(sbOrders)) {
+      const mappedSbOrders: OrderItemRecord[] = sbOrders
+        .filter((s: any) => s.order_number && s.order_number !== 'AVRONCE_STATE_SYNC' && s.order_number !== 'AVR-DUP-TEST')
+        .map((s: any) => {
+          let parsedNotes: any = {};
+          try {
+            if (s.notes && (s.notes.startsWith('{') || s.notes.startsWith('['))) {
+              parsedNotes = JSON.parse(s.notes);
+            }
+          } catch {}
+
+          const items: OrderItemRecord['items'] = Array.isArray(s.items) && s.items.length > 0
+            ? s.items.map((it: any) => ({
+                id: it.id || `item-${Date.now()}`,
+                productId: it.product_id || it.productId || 'prod-custom',
+                name: it.product_name || 'AVRONCE Item',
+                slug: it.product_slug || 'item',
+                size: it.size || 'Standard',
+                price: Number(it.price || 0),
+                quantity: Number(it.quantity || 1),
+                image: it.product_image || '/images/collections/cat_boots.webp',
+              }))
+            : [];
+
+          return {
+            id: s.id,
+            order_number: s.order_number,
+            status: (s.status as any) || 'processing',
+            payment_status: s.payment_status === 'captured' ? 'paid' : (s.payment_status || 'paid'),
+            payment_method: parsedNotes.payment_method || (s.razorpay_payment_id ? 'Razorpay Secure Online' : 'Cash on Delivery (COD)'),
+            razorpay_order_id: s.razorpay_order_id || '',
+            razorpay_payment_id: s.razorpay_payment_id || '',
+            razorpay_signature: s.razorpay_signature || '',
+            tracking_token: parsedNotes.tracking_token || '',
+            tracking_id: parsedNotes.tracking_id || '',
+            courier: parsedNotes.courier || 'BlueDart Express',
+            customer: {
+              name: s.customer_name || s.shipping_address?.fullName || 'Customer',
+              email: s.customer_email || s.shipping_address?.email || 'customer@avronce.com',
+              phone: s.customer_phone || s.shipping_address?.phone || '',
+            },
+            shipping_address: s.shipping_address || {
+              fullName: s.customer_name || 'Customer',
+              email: s.customer_email || 'customer@avronce.com',
+              phone: s.customer_phone || '',
+              addressLine1: 'Address on file',
+              city: 'India',
+              state: '',
+              postalCode: '',
+              country: 'India',
+            },
+            items,
+            subtotal: Number(s.subtotal || s.total_amount || 0),
+            discount_amount: Number(s.discount_amount || 0),
+            coupon_code: parsedNotes.coupon_code || '',
+            shipping_fee: Number(s.shipping_fee || 0),
+            tax_amount: Number(s.tax_amount || 0),
+            total_amount: Number(s.total_amount || 0),
+            notes: typeof s.notes === 'string' ? s.notes : '',
+            created_at: s.created_at || new Date().toISOString(),
+            updated_at: s.updated_at || s.created_at || new Date().toISOString(),
+          };
+        });
+
+      // Merge Supabase orders with local db orders
+      const orderMap = new Map<string, OrderItemRecord>();
+      
+      for (const o of mappedSbOrders) {
+        orderMap.set(o.order_number, o);
+      }
+
+      for (const localO of db.orders || []) {
+        if (!localO.order_number) continue;
+        if (orderMap.has(localO.order_number)) {
+          const existing = orderMap.get(localO.order_number)!;
+          if (localO.tracking_id && !existing.tracking_id) existing.tracking_id = localO.tracking_id;
+          if (localO.courier && existing.courier === 'BlueDart Express') existing.courier = localO.courier;
+          if (localO.status && localO.status !== existing.status) existing.status = localO.status;
+          if (localO.payment_status && localO.payment_status !== existing.payment_status) {
+            existing.payment_status = localO.payment_status;
+          }
+          if (localO.razorpay_payment_id && !existing.razorpay_payment_id) {
+            existing.razorpay_payment_id = localO.razorpay_payment_id;
+          }
+          if (localO.razorpay_signature && !existing.razorpay_signature) {
+            existing.razorpay_signature = localO.razorpay_signature;
+          }
+          if ((!existing.items || existing.items.length === 0) && localO.items && localO.items.length > 0) {
+            existing.items = localO.items;
+          }
+        } else {
+          orderMap.set(localO.order_number, localO);
+        }
+      }
+
+      const merged = Array.from(orderMap.values()).sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+
+      db.orders = merged;
+      return merged;
+    }
+  } catch (sbErr) {
+    console.warn('Fallback to local database for orders:', sbErr);
+  }
+
+  return (db.orders || []).sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+}
+
+export async function getDbOrderByIdOrNumber(identifier: string): Promise<OrderItemRecord | null> {
+  const orders = await getDbOrders();
+  const clean = identifier.trim().toLowerCase();
+  const match = orders.find(
+    (o) =>
+      o.id.toLowerCase() === clean ||
+      o.order_number.toLowerCase() === clean ||
+      (o.tracking_token && o.tracking_token.toLowerCase() === clean) ||
+      (o.razorpay_order_id && o.razorpay_order_id.toLowerCase() === clean)
+  );
+  return match || null;
 }
 
 export async function createDbOrder(order: Partial<OrderItemRecord>): Promise<OrderItemRecord> {
   const db = await readDb();
-  const orderNumber = `AVR-${Math.floor(10000 + Math.random() * 90000)}`;
+  const dateStr = new Date().toISOString().slice(2, 10).replace(/-/g, '');
+  const randNum = Math.floor(10000 + Math.random() * 90000);
+  const orderNumber = order.order_number || `AVR-${dateStr}-${randNum}`;
+  const trackingToken = order.tracking_token || `trk_${crypto.randomBytes(16).toString('hex')}`;
+  const now = new Date().toISOString();
+
   const newOrder: OrderItemRecord = {
-    id: `ord-${Date.now()}`,
+    id: order.id || `ord-${Date.now()}`,
     order_number: orderNumber,
     status: order.status || 'pending',
     payment_status: order.payment_status || 'pending',
     payment_method: order.payment_method || 'Online Payment',
+    razorpay_order_id: order.razorpay_order_id || '',
     razorpay_payment_id: order.razorpay_payment_id || '',
-    tracking_id: '',
-    courier: 'BlueDart Express',
-    customer: order.customer || { name: 'Customer', email: 'guest@avronce.com', phone: '' },
+    razorpay_signature: order.razorpay_signature || '',
+    tracking_token: trackingToken,
+    tracking_id: order.tracking_id || '',
+    courier: order.courier || 'BlueDart Express',
+    customer: order.customer || {
+      name: (order.shipping_address as any)?.fullName || 'Customer',
+      email: (order.shipping_address as any)?.email || 'guest@avronce.com',
+      phone: (order.shipping_address as any)?.phone || '',
+    },
     shipping_address: order.shipping_address as any,
     items: order.items || [],
-    subtotal: order.subtotal || 0,
-    discount_amount: order.discount_amount || 0,
+    subtotal: Number(order.subtotal || 0),
+    discount_amount: Number(order.discount_amount || 0),
     coupon_code: order.coupon_code || '',
-    shipping_fee: order.shipping_fee || 0,
-    tax_amount: order.tax_amount || 0,
-    total_amount: order.total_amount || 0,
-    created_at: new Date().toISOString(),
+    shipping_fee: Number(order.shipping_fee || 0),
+    tax_amount: Number(order.tax_amount || 0),
+    total_amount: Number(order.total_amount || 0),
+    notes: order.notes || '',
+    created_at: order.created_at || now,
+    updated_at: now,
   };
 
-  db.orders.unshift(newOrder);
+  // Sync to Supabase orders and order_items
+  try {
+    const supabase = createServerSupabase();
+    const metaNotes = JSON.stringify({
+      payment_method: newOrder.payment_method,
+      courier: newOrder.courier,
+      tracking_id: newOrder.tracking_id,
+      coupon_code: newOrder.coupon_code,
+      tracking_token: newOrder.tracking_token,
+      items_count: newOrder.items.length,
+      note: newOrder.notes || '',
+    });
+
+    const { data: sbOrder, error: sbErr } = await supabase
+      .from('orders')
+      .insert({
+        order_number: newOrder.order_number,
+        customer_name: newOrder.customer.name,
+        customer_email: newOrder.customer.email,
+        customer_phone: newOrder.customer.phone || (newOrder.shipping_address?.phone) || '9999999999',
+        shipping_address: newOrder.shipping_address,
+        subtotal: newOrder.subtotal,
+        tax_amount: newOrder.tax_amount,
+        shipping_fee: newOrder.shipping_fee,
+        discount_amount: newOrder.discount_amount,
+        total_amount: newOrder.total_amount,
+        status: newOrder.status === 'pending_payment' ? 'pending' : (newOrder.status === 'confirmed' ? 'processing' : newOrder.status),
+        payment_status: newOrder.payment_status === 'paid' ? 'captured' : newOrder.payment_status,
+        razorpay_order_id: newOrder.razorpay_order_id || null,
+        razorpay_payment_id: newOrder.razorpay_payment_id || null,
+        razorpay_signature: newOrder.razorpay_signature || null,
+        notes: metaNotes,
+      })
+      .select()
+      .single();
+
+    if (!sbErr && sbOrder) {
+      newOrder.id = sbOrder.id; // Store Supabase UUID on order
+
+      // Insert order items into Supabase
+      if (newOrder.items && newOrder.items.length > 0) {
+        const itemsToInsert = newOrder.items.map((it) => ({
+          order_id: sbOrder.id,
+          product_name: it.name,
+          product_slug: it.slug || null,
+          product_image: it.image || null,
+          size: it.size || 'Standard',
+          color_name: (it as any).colorName || 'Default',
+          price: Number(it.price || 0),
+          quantity: Number(it.quantity || 1),
+          total: Number((it.price || 0) * (it.quantity || 1)),
+        }));
+
+        await supabase.from('order_items').insert(itemsToInsert);
+      }
+    }
+  } catch (sbInsertErr) {
+    console.warn('Supabase order creation warning:', sbInsertErr);
+  }
+
+  // Update in-memory local DB
+  const existingIdx = db.orders.findIndex(
+    (o) => o.order_number === newOrder.order_number || o.id === newOrder.id
+  );
+  if (existingIdx >= 0) {
+    db.orders[existingIdx] = newOrder;
+  } else {
+    db.orders.unshift(newOrder);
+  }
 
   // Update customer record
-  if (order.customer?.email) {
-    const custIdx = db.customers.findIndex((c) => c.email.toLowerCase() === order.customer?.email.toLowerCase());
+  if (newOrder.customer?.email) {
+    const custIdx = db.customers.findIndex(
+      (c) => c.email.toLowerCase() === newOrder.customer.email.toLowerCase()
+    );
     if (custIdx >= 0) {
       db.customers[custIdx].ordersCount += 1;
       db.customers[custIdx].totalSpent += newOrder.total_amount;
     } else {
       db.customers.unshift({
         id: `cust-${Date.now()}`,
-        name: order.customer.name,
-        email: order.customer.email,
-        phone: order.customer.phone,
+        name: newOrder.customer.name,
+        email: newOrder.customer.email,
+        phone: newOrder.customer.phone,
         ordersCount: 1,
         totalSpent: newOrder.total_amount,
-        city: (order.shipping_address as any)?.city || 'India',
+        city: (newOrder.shipping_address as any)?.city || 'India',
         joinedDate: new Date().toISOString().split('T')[0],
       });
     }
   }
 
   // Adjust stock
-  for (const item of newOrder.items) {
-    const prod = db.products.find((p) => p.id === item.productId);
-    if (prod && prod.stock) {
-      prod.stock = Math.max(0, prod.stock - item.quantity);
+  if (newOrder.payment_status === 'paid' || newOrder.status === 'confirmed' || newOrder.status === 'processing') {
+    for (const item of newOrder.items) {
+      const prod = db.products.find((p) => p.id === item.productId || p.slug === item.slug);
+      if (prod && prod.stock !== undefined) {
+        prod.stock = Math.max(0, prod.stock - item.quantity);
+        prod.available = prod.stock > 0;
+      }
     }
   }
 
@@ -381,15 +603,53 @@ export async function updateDbOrderStatus(
   id: string,
   status: OrderItemRecord['status'],
   trackingId?: string,
-  courier?: string
+  courier?: string,
+  paymentStatus?: OrderItemRecord['payment_status'],
+  razorpayPaymentId?: string
 ): Promise<OrderItemRecord | null> {
   const db = await readDb();
-  const order = db.orders.find((o) => o.id === id || o.order_number === id);
-  if (!order) return null;
+  if (!db.orders || db.orders.length === 0) {
+    await getDbOrders();
+  }
 
+  const order = db.orders.find((o) => o.id === id || o.order_number === id);
+  if (!order) {
+    const allOrders = await getDbOrders();
+    const found = allOrders.find((o) => o.id === id || o.order_number === id);
+    if (!found) return null;
+    return updateDbOrderStatus(found.id, status, trackingId, courier, paymentStatus, razorpayPaymentId);
+  }
+
+  const previousStatus = order.status;
   order.status = status;
+  order.updated_at = new Date().toISOString();
+
   if (trackingId !== undefined) order.tracking_id = trackingId;
   if (courier !== undefined) order.courier = courier;
+  if (paymentStatus !== undefined) order.payment_status = paymentStatus;
+  if (razorpayPaymentId !== undefined) order.razorpay_payment_id = razorpayPaymentId;
+
+  // Stock restoration on cancellation
+  if (status === 'cancelled' && previousStatus !== 'cancelled') {
+    for (const item of order.items || []) {
+      const prod = db.products.find((p) => p.id === item.productId || p.slug === item.slug);
+      if (prod && prod.stock !== undefined) {
+        prod.stock += item.quantity;
+        prod.available = prod.stock > 0;
+      }
+    }
+  }
+
+  // Stock deduction if moving from pending_payment to processing/confirmed
+  if ((status === 'processing' || status === 'confirmed') && previousStatus === 'pending_payment') {
+    for (const item of order.items || []) {
+      const prod = db.products.find((p) => p.id === item.productId || p.slug === item.slug);
+      if (prod && prod.stock !== undefined) {
+        prod.stock = Math.max(0, prod.stock - item.quantity);
+        prod.available = prod.stock > 0;
+      }
+    }
+  }
 
   await writeDb(db);
   return order;
@@ -543,20 +803,21 @@ export async function saveDbCms(cmsData: any) {
 // ---------------- DASHBOARD STATS ----------------
 export async function getDbStats() {
   const db = await readDb();
-  const totalRevenue = db.orders
-    .filter((o) => o.status !== 'cancelled')
+  const orders = await getDbOrders();
+  const totalRevenue = orders
+    .filter((o) => o.status !== 'cancelled' && o.payment_status !== 'failed')
     .reduce((sum, o) => sum + (o.total_amount || 0), 0);
 
-  const totalOrders = db.orders.length;
+  const totalOrders = orders.length;
   const totalProducts = db.products.length;
   const totalCustomers = db.customers.length;
 
   const ordersByStatus = {
-    pending: db.orders.filter((o) => o.status === 'pending').length,
-    processing: db.orders.filter((o) => o.status === 'processing' || o.status === 'confirmed').length,
-    shipped: db.orders.filter((o) => o.status === 'shipped' || o.status === 'packed').length,
-    delivered: db.orders.filter((o) => o.status === 'delivered').length,
-    cancelled: db.orders.filter((o) => o.status === 'cancelled').length,
+    pending: orders.filter((o) => o.status === 'pending' || o.status === 'pending_payment').length,
+    processing: orders.filter((o) => o.status === 'processing' || o.status === 'confirmed').length,
+    shipped: orders.filter((o) => o.status === 'shipped' || o.status === 'packed').length,
+    delivered: orders.filter((o) => o.status === 'delivered').length,
+    cancelled: orders.filter((o) => o.status === 'cancelled').length,
   };
 
   const lowStockProducts = db.products.filter((p) => (p.stock || 0) < 15);
@@ -569,7 +830,7 @@ export async function getDbStats() {
     ordersByStatus,
     lowStockCount: lowStockProducts.length,
     lowStockProducts: lowStockProducts.slice(0, 5),
-    recentOrders: db.orders.slice(0, 6),
+    recentOrders: orders.slice(0, 8),
   };
 }
 

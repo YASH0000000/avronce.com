@@ -75,6 +75,7 @@ const COURIER_OPTIONS = [
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [apiError, setApiError] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [search, setSearch] = useState('');
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
@@ -86,21 +87,25 @@ export default function AdminOrdersPage() {
   const fetchOrders = async () => {
     try {
       setLoading(true);
+      setApiError(null);
       const res = await fetch('/api/admin/orders');
       const data = await res.json();
-      if (data.success) {
-        setOrders(data.orders);
+      if (res.ok && data.success) {
+        setOrders(data.orders || []);
         const map: any = {};
-        for (const o of data.orders) {
+        for (const o of (data.orders || [])) {
           map[o.id] = {
             courier: o.courier || 'BlueDart Express',
             tracking_id: o.tracking_id || '',
           };
         }
         setTrackingForm(map);
+      } else {
+        setApiError(data.error || 'Failed to retrieve orders from server API.');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to load orders', err);
+      setApiError(err.message || 'Network error fetching orders.');
     } finally {
       setLoading(false);
     }
@@ -173,8 +178,10 @@ export default function AdminOrdersPage() {
   const getStatusBadge = (status: string) => {
     const map: Record<string, { bg: string; text: string; icon: any }> = {
       pending: { bg: 'bg-amber-500/10 border-amber-500/30', text: 'text-amber-400', icon: Clock },
+      pending_payment: { bg: 'bg-yellow-500/10 border-yellow-500/30', text: 'text-yellow-400', icon: Clock },
       processing: { bg: 'bg-sky-500/10 border-sky-500/30', text: 'text-sky-400', icon: Package },
       confirmed: { bg: 'bg-sky-500/10 border-sky-500/30', text: 'text-sky-400', icon: Package },
+      packed: { bg: 'bg-indigo-500/10 border-indigo-500/30', text: 'text-indigo-400', icon: Package },
       shipped: { bg: 'bg-indigo-500/10 border-indigo-500/30', text: 'text-indigo-400', icon: Truck },
       delivered: { bg: 'bg-emerald-500/10 border-emerald-500/30', text: 'text-emerald-400', icon: CheckCircle },
       cancelled: { bg: 'bg-rose-500/10 border-rose-500/30', text: 'text-rose-400', icon: AlertTriangle },
@@ -184,7 +191,7 @@ export default function AdminOrdersPage() {
     return (
       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border uppercase ${c.bg} ${c.text}`}>
         <Icon className="w-3 h-3" />
-        {status}
+        {status?.replace('_', ' ')}
       </span>
     );
   };
@@ -206,6 +213,21 @@ export default function AdminOrdersPage() {
           <RefreshCw className="w-3.5 h-3.5" /> Refresh Orders
         </button>
       </div>
+
+      {apiError && (
+        <div className="p-4 rounded-xl bg-rose-950/40 border border-rose-800/80 flex items-center justify-between gap-4 text-xs text-rose-300">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+            <span>Server Error: {apiError}</span>
+          </div>
+          <button
+            onClick={fetchOrders}
+            className="px-3 py-1 bg-rose-800 hover:bg-rose-700 text-white rounded font-bold uppercase tracking-wider text-[10px]"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* Filter Tabs & Search */}
       <div className="p-4 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-4">

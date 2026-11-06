@@ -54,22 +54,46 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<'online' | 'cod'>('online');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [savedOrderNumber, setSavedOrderNumber] = useState('');
   const [razorpayReady, setRazorpayReady] = useState(false);
 
-  // Load Razorpay Checkout Script
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.async = true;
-    script.onload = () => setRazorpayReady(true);
-    script.onerror = () => console.warn('Razorpay SDK failed to load external script');
-    document.body.appendChild(script);
+  // Determine gateway environment from client or fallback
+  const clientKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_51AvronceDevKey';
+  const isLiveGateway = clientKeyId.startsWith('rzp_live');
 
-    return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
+  // Load Razorpay Checkout Script safely
+  const loadRazorpaySdk = (): Promise<boolean> => {
+    return new Promise((resolve) => {
+      if (typeof window === 'undefined') return resolve(false);
+      if (window.Razorpay) {
+        setRazorpayReady(true);
+        return resolve(true);
       }
-    };
+      const existing = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
+      if (existing) {
+        existing.addEventListener('load', () => {
+          setRazorpayReady(true);
+          resolve(true);
+        });
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      script.onload = () => {
+        setRazorpayReady(true);
+        resolve(true);
+      };
+      script.onerror = () => {
+        console.warn('Razorpay SDK failed to load external script');
+        resolve(false);
+      };
+      document.body.appendChild(script);
+    });
+  };
+
+  useEffect(() => {
+    loadRazorpaySdk();
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -101,74 +125,51 @@ export default function CheckoutPage() {
     setErrorMsg('');
 
     try {
-      // 1. COD Direct Order placement
-      if (paymentMethod === 'cod' && !instantSimulate) {
-        const codOrderId = `LB-COD-${Date.now().toString().slice(-6)}`;
-        const verifyRes = await fetch('/api/razorpay/verify-payment', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            razorpay_order_id: codOrderId,
-            razorpay_payment_id: `cod_pending_${Date.now()}`,
-            razorpay_signature: 'simulated_signature_avronce',
-            customer: {
-              name: formData.fullName,
-              email: formData.email,
-              phone: formData.phone,
-            },
-            shippingAddress: formData,
-            items,
-            subtotal,
-            discountAmount,
-            shippingFee,
-            taxAmount,
-            totalAmount,
-            isCod: true,
-          }),
-        });
-
-        const verifyData = await verifyRes.json();
-        if (verifyRes.ok && verifyData.success) {
-          clearCart();
-          router.push(`/order-success/${verifyData.orderId}`);
-          return;
-        } else {
-          throw new Error(verifyData.error || 'Failed to record COD order');
-        }
-      }
-
-      // 2. Create Razorpay Order
-      const res = await fetch('/api/razorpay/create-order', {
+      // 1. Call central /api/checkout to validate stock, prices, and create durable order in database
+      const checkoutRes = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          amount: totalAmount,
-          currency: 'INR',
-          notes: {
-            customer_name: formData.fullName,
-            customer_email: formData.email,
-            customer_phone: formData.phone,
-            coupon_applied: couponCode || 'NONE',
+          customer: {
+            name: formData.fullName,
+            email: formData.email,
+            phone: formData.phone,
           },
+          shippingAddress: formData,
+          items,
+          couponCode,
+          paymentMethod,
+          instantSimulate,
         }),
       });
 
-      if (!res.ok) {
-        throw new Error('Failed to initiate secure checkout gateway session.');
+      const checkoutData = await checkoutRes.json();
+      if (!checkoutRes.ok || !checkoutData.success) {
+        throw new Error(checkoutData.error || 'Failed to initialize secure checkout session');
       }
 
-      const orderData = await res.json();
+      const activeOrderNumber = checkoutData.orderNumber;
+      setSavedOrderNumber(activeOrderNumber);
 
-      // If Instant Simulation or fallback
-      if (instantSimulate || !window.Razorpay) {
-        const simPaymentId = `pay_sim_littlebox_${Date.now()}`;
+      // 2. COD Direct Flow
+      if (checkoutData.isCod) {
+        clearCart();
+        router.push(`/order-success/${encodeURIComponent(activeOrderNumber)}`);
+        return;
+      }
+
+      // 3. Instant Sandbox Simulation Mode
+      if (instantSimulate || checkoutData.isSimulated) {
+        const simPaymentId = `pay_sim_${Date.now()}`;
         const simSignature = 'simulated_signature_avronce';
 
         const verifyRes = await fetch('/api/razorpay/verify-payment', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            razorpay_order_id: orderData.id,
+            orderNumber: activeOrderNumber,
+            orderId: checkoutData.orderId,
+            razorpay_order_id: checkoutData.razorpayOrderId,
             razorpay_payment_id: simPaymentId,
             razorpay_signature: simSignature,
             customer: {
@@ -189,21 +190,27 @@ export default function CheckoutPage() {
         const verifyData = await verifyRes.json();
         if (verifyRes.ok && verifyData.success) {
           clearCart();
-          router.push(`/order-success/${verifyData.orderId}`);
+          router.push(`/order-success/${encodeURIComponent(verifyData.orderNumber || activeOrderNumber)}`);
           return;
         } else {
           throw new Error(verifyData.error || 'Failed to record simulated payment order');
         }
       }
 
-      // Standard Razorpay Modal
+      // 4. Standard Razorpay Modal
+      await loadRazorpaySdk();
+
+      if (!window.Razorpay) {
+        throw new Error('Razorpay Checkout SDK is loading. Please check your connection or retry.');
+      }
+
       const options = {
-        key: orderData.key || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_51AvronceDevKey',
-        amount: orderData.amount,
-        currency: orderData.currency || 'INR',
+        key: checkoutData.key || clientKeyId,
+        amount: checkoutData.amount,
+        currency: checkoutData.currency || 'INR',
         name: 'AVRONCE',
         description: 'Modern Everyday Luxury & Footwear Order',
-        order_id: orderData.id,
+        order_id: checkoutData.razorpayOrderId,
         prefill: {
           name: formData.fullName,
           email: formData.email,
@@ -218,6 +225,8 @@ export default function CheckoutPage() {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
+                orderNumber: activeOrderNumber,
+                orderId: checkoutData.orderId,
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
@@ -239,7 +248,7 @@ export default function CheckoutPage() {
             const verifyData = await verifyRes.json();
             if (verifyRes.ok && verifyData.success) {
               clearCart();
-              router.push(`/order-success/${verifyData.orderId}`);
+              router.push(`/order-success/${encodeURIComponent(verifyData.orderNumber || activeOrderNumber)}`);
             } else {
               setErrorMsg(verifyData.error || 'Payment signature verification failed.');
               setLoading(false);
@@ -257,13 +266,72 @@ export default function CheckoutPage() {
       };
 
       const rzp = new window.Razorpay(options);
-      rzp.on('payment.failed', function (resp: any) {
-        setErrorMsg(`Payment Failed: ${resp.error.description || 'Transaction declined'}`);
+
+      rzp.on('payment.failed', async function (resp: any) {
+        const errorDesc = resp.error?.description || 'Transaction declined';
+        const errorCode = resp.error?.code || 'PAYMENT_FAILED';
+
+        // Notify backend of payment failure
+        try {
+          await fetch('/api/razorpay/payment-failed', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orderNumber: activeOrderNumber,
+              orderId: checkoutData.orderId,
+              errorCode,
+              errorDescription: errorDesc,
+            }),
+          });
+        } catch {}
+
+        setErrorMsg(
+          `Payment could not be completed (${errorDesc}). Your order ${activeOrderNumber} has been reserved. You can retry payment or switch to Cash on Delivery (COD).`
+        );
         setLoading(false);
       });
+
       rzp.open();
     } catch (err: any) {
       setErrorMsg(err.message || 'Payment processing encountered an unexpected error.');
+      setLoading(false);
+    }
+  };
+
+  const convertToCod = async () => {
+    if (!savedOrderNumber) return;
+    setLoading(true);
+    setErrorMsg('');
+    try {
+      const res = await fetch('/api/razorpay/verify-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderNumber: savedOrderNumber,
+          isCod: true,
+          customer: {
+            name: formData.fullName,
+            email: formData.email,
+            phone: formData.phone,
+          },
+          shippingAddress: formData,
+          items,
+          subtotal,
+          discountAmount,
+          shippingFee,
+          taxAmount,
+          totalAmount,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        clearCart();
+        router.push(`/order-success/${encodeURIComponent(data.orderNumber || savedOrderNumber)}`);
+      } else {
+        throw new Error(data.error || 'Failed to convert order to COD');
+      }
+    } catch (e: any) {
+      setErrorMsg(e.message || 'Could not switch to COD.');
       setLoading(false);
     }
   };
@@ -311,25 +379,51 @@ export default function CheckoutPage() {
           <div className="lg:col-span-7 space-y-6 sm:space-y-8">
             
             {errorMsg && (
-              <div className="p-4 bg-red-950/50 border border-red-800 text-red-200 text-xs rounded-xs flex items-center gap-3">
-                <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
-                <span>{errorMsg}</span>
+              <div className="p-4 bg-red-950/60 border border-red-800 text-red-200 text-xs rounded-xs space-y-3">
+                <div className="flex items-center gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
+                  <span className="font-medium">{errorMsg}</span>
+                </div>
+                {savedOrderNumber && (
+                  <div className="pt-2 border-t border-red-900/60 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={convertToCod}
+                      disabled={loading}
+                      className="px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-zinc-950 font-bold text-[11px] uppercase tracking-wider rounded-xs transition-colors"
+                    >
+                      Switch Order ({savedOrderNumber}) to Cash on Delivery (COD) →
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handlePayment(false)}
+                      disabled={loading}
+                      className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-[11px] uppercase tracking-wider rounded-xs transition-colors"
+                    >
+                      Retry Payment
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
-            {/* Test Gateway Helper */}
+            {/* Gateway Information Badge */}
             <div className="bg-zinc-900 border border-zinc-800 p-4 sm:p-5 rounded-xs space-y-2">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-yellow-400">
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-400">
                   <Sparkles className="w-4 h-4" />
-                  <span>Razorpay Test Gateway Mode Active</span>
+                  <span>
+                    {isLiveGateway ? 'Razorpay 256-Bit Secure Gateway' : 'Razorpay Sandbox Test Mode Active'}
+                  </span>
                 </div>
-                <span className="text-[10px] bg-yellow-400/20 text-yellow-300 border border-yellow-400/40 px-2 py-0.5 rounded font-mono">
-                  Test Sandbox
+                <span className="text-[10px] bg-amber-400/20 text-amber-300 border border-amber-400/40 px-2 py-0.5 rounded font-mono">
+                  {isLiveGateway ? 'Live Gateway' : 'Test Sandbox'}
                 </span>
               </div>
               <p className="text-xs text-zinc-400">
-                You can complete orders using test UPI (<strong className="text-white">success@razorpay</strong>), test cards, or the 1-click test simulation button below.
+                {isLiveGateway
+                  ? 'Accepts UPI (Google Pay, PhonePe, Paytm, BHIM), Cards (Visa, Mastercard, RuPay), and NetBanking. For instant test simulation, use the 1-click test button below.'
+                  : 'You can complete orders using test UPI (success@razorpay), test cards, or the 1-click test simulation button below.'}
               </p>
             </div>
 

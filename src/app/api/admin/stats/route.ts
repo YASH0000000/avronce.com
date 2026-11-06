@@ -4,8 +4,12 @@ import { getDbStats } from '@/lib/db';
 export async function GET() {
   try {
     const stats = await getDbStats();
-    return NextResponse.json(stats);
+    return NextResponse.json({
+      success: true,
+      stats,
+      ...stats,
+    });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }

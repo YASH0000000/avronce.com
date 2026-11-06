@@ -4,7 +4,6 @@ import React, { useState, useEffect, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase/client';
 import { 
   Search, 
   Package, 
@@ -16,7 +15,7 @@ import {
   Calendar,
   ArrowRight,
   ShieldCheck,
-  Zap
+  ExternalLink
 } from 'lucide-react';
 
 function TrackOrderContent() {
@@ -24,12 +23,13 @@ function TrackOrderContent() {
   const initialOrderQuery = searchParams.get('order') || '';
 
   const [query, setQuery] = useState(initialOrderQuery);
+  const [verifyContact, setVerifyContact] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [order, setOrder] = useState<any>(null);
   const [orderItems, setOrderItems] = useState<any[]>([]);
 
-  const performSearch = async (targetQuery: string) => {
+  const performSearch = async (targetQuery: string, contactCheck = '') => {
     if (!targetQuery.trim()) return;
 
     setLoading(true);
@@ -40,111 +40,50 @@ function TrackOrderContent() {
     const clean = targetQuery.trim();
 
     try {
-      // 1. Try local store-db.json API first for instant real-time sync
-      try {
-        const localRes = await fetch(`/api/orders?order_number=${encodeURIComponent(clean)}`);
-        const localData = await localRes.json();
-        if (localRes.ok && localData.success && localData.order) {
-          const ord = localData.order;
-          setOrder({
-            id: ord.id,
-            order_number: ord.order_number,
-            status: ord.status,
-            customer_email: ord.customer?.email,
-            created_at: ord.created_at,
-            shipping_address: ord.shipping_address,
-            total_amount: ord.total_amount,
-            razorpay_payment_id: ord.razorpay_payment_id,
-            tracking_id: ord.tracking_id,
-            courier: ord.courier,
-          });
+      let url = `/api/orders?order_number=${encodeURIComponent(clean)}`;
+      if (contactCheck.trim()) {
+        url += `&verify=${encodeURIComponent(contactCheck.trim())}`;
+      }
+
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (res.ok && data.success && data.order) {
+        const ord = data.order;
+        setOrder({
+          id: ord.id,
+          order_number: ord.order_number,
+          status: ord.status,
+          payment_status: ord.payment_status,
+          payment_method: ord.payment_method,
+          customer_email: ord.customer?.email,
+          created_at: ord.created_at,
+          shipping_address: ord.shipping_address,
+          total_amount: ord.total_amount,
+          subtotal: ord.subtotal,
+          discount_amount: ord.discount_amount,
+          shipping_fee: ord.shipping_fee,
+          razorpay_payment_id: ord.razorpay_payment_id,
+          tracking_id: ord.tracking_id,
+          courier: ord.courier || 'BlueDart Express',
+        });
+
+        if (ord.items && Array.isArray(ord.items)) {
           setOrderItems(
-            (ord.items || []).map((i: any) => ({
-              id: i.id,
-              product_name: i.name,
-              product_image: i.image,
-              size: i.size,
-              quantity: i.quantity,
-              total: i.price * i.quantity,
+            ord.items.map((i: any) => ({
+              id: i.id || `item-${Math.random()}`,
+              product_name: i.name || i.product_name || 'AVRONCE Item',
+              product_image: i.image || i.product_image || '/images/collections/cat_boots.webp',
+              size: i.size || 'M',
+              quantity: i.quantity || 1,
+              total: i.total || (i.price * (i.quantity || 1)),
             }))
           );
-          setLoading(false);
-          return;
         }
-      } catch (e) {
-        // Continue to Supabase or fallback
-      }
-
-      let supabaseQuery = supabase.from('orders').select('*');
-
-      if (clean.toUpperCase().startsWith('AVR-') || clean.toUpperCase().startsWith('LB-')) {
-        supabaseQuery = supabaseQuery.ilike('order_number', `%${clean}%`);
-      } else if (clean.includes('@')) {
-        supabaseQuery = supabaseQuery.ilike('customer_email', clean);
       } else {
-        supabaseQuery = supabaseQuery.or(`order_number.ilike.%${clean}%,customer_phone.ilike.%${clean}%`);
-      }
-
-      const { data, error } = await supabaseQuery
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (error || !data) {
-        // Fallback demo order preview for AVRONCE testers
-        setOrder({
-          id: 'demo-order-1',
-          order_number: clean.toUpperCase().startsWith('AVR-') ? clean.toUpperCase() : `AVR-${Math.floor(10000 + Math.random() * 90000)}`,
-          status: 'shipped',
-          customer_email: clean.includes('@') ? clean : 'customer@avronce.com',
-          created_at: new Date(Date.now() - 2 * 86400000).toISOString(),
-          shipping_address: {
-            fullName: 'Ananya Sharma',
-            phone: '+91 98765 43210',
-            addressLine1: 'Flat 402, Lotus Residency, Indiranagar',
-            city: 'Bengaluru',
-            state: 'Karnataka',
-            postalCode: '560038',
-            country: 'India',
-          },
-          total_amount: 2448,
-          razorpay_payment_id: 'pay_sim_avronce_9941',
-          tracking_id: 'BD-84910284',
-          courier: 'BlueDart Express',
-        });
-        setOrderItems([
-          {
-            id: 'item-1',
-            product_name: 'Motorcycle Side Zipper Chunky Sole Knee Boots',
-            product_image: '/images/collections/cat_boots.webp',
-            size: '38 (UK 5)',
-            color_name: 'Jet Black',
-            quantity: 1,
-            total: 1799,
-          },
-          {
-            id: 'item-2',
-            product_name: 'Halter Neck Lace Trim Ruched Top',
-            product_image: '/images/collections/cat_dressup15.webp',
-            size: 'M',
-            color_name: 'Chocolate Brown',
-            quantity: 1,
-            total: 649,
-          },
-        ]);
-        setLoading(false);
-        return;
-      }
-
-      setOrder(data);
-
-      const { data: items } = await supabase
-        .from('order_items')
-        .select('*')
-        .eq('order_id', data.id);
-
-      if (items) {
-        setOrderItems(items);
+        setErrorMsg(
+          data.error || 'No matching order found. Please check your order number or contact concierge at support@avronce.com.'
+        );
       }
     } catch (err: any) {
       setErrorMsg(err.message || 'An error occurred while tracking your order.');
@@ -161,7 +100,7 @@ function TrackOrderContent() {
 
   const handleTrack = (e: React.FormEvent) => {
     e.preventDefault();
-    performSearch(query);
+    performSearch(query, verifyContact);
   };
 
   const getStatusStep = (status: string) => {
@@ -171,14 +110,16 @@ function TrackOrderContent() {
       case 'shipped':
         return 3;
       case 'processing':
+      case 'confirmed':
         return 2;
       case 'pending':
+      case 'pending_payment':
       default:
         return 1;
     }
   };
 
-  const currentStep = getStatusStep(order?.status || 'shipped');
+  const currentStep = getStatusStep(order?.status || 'pending');
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 space-y-10">
@@ -192,30 +133,36 @@ function TrackOrderContent() {
           Track Your Delivery 🚚
         </h1>
         <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 max-w-md mx-auto">
-          Enter your AVRONCE Order ID (e.g. <strong className="font-mono text-zinc-900 dark:text-white">AVR-89214</strong>) or registered 10-digit mobile number.
+          Enter your AVRONCE Order ID (e.g. <strong className="font-mono text-zinc-900 dark:text-white">AVR-89214</strong>) to track real-time dispatch and courier status.
         </p>
       </div>
 
       {/* Search Input Box */}
-      <form onSubmit={handleTrack} className="max-w-xl mx-auto flex gap-2">
-        <div className="relative flex-1">
-          <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            required
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Order ID (e.g. AVR-89214) or phone number"
-            className="w-full bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 text-xs text-zinc-900 dark:text-white pl-10 pr-4 py-3.5 rounded-xl focus:outline-none focus:border-amber-500 font-mono"
-          />
+      <form onSubmit={handleTrack} className="max-w-xl mx-auto space-y-3">
+        <div className="flex flex-col sm:flex-row gap-2">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              required
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Order Number (e.g. AVR-89214)"
+              className="w-full bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 text-xs text-zinc-900 dark:text-white pl-10 pr-4 py-3.5 rounded-xl focus:outline-none focus:border-amber-500 font-mono"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="px-8 py-3.5 bg-gradient-to-r from-amber-400 to-amber-500 text-zinc-950 font-black text-xs uppercase tracking-wider rounded-xl hover:from-amber-300 hover:to-amber-400 disabled:opacity-50 shadow-md transition-all shrink-0"
+          >
+            {loading ? 'Tracking...' : 'Track Order'}
+          </button>
         </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="px-6 py-3.5 bg-gradient-to-r from-amber-400 to-amber-500 text-zinc-950 font-bold text-xs uppercase tracking-wider rounded-xl hover:from-amber-300 hover:to-amber-400 disabled:opacity-50 shadow"
-        >
-          {loading ? 'Tracking...' : 'Track'}
-        </button>
+
+        <div className="text-[11px] text-zinc-500 text-center font-mono">
+          Optional verification: enter registered email or phone to confirm ownership.
+        </div>
       </form>
 
       {errorMsg && (
@@ -245,8 +192,8 @@ function TrackOrderContent() {
 
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-xs uppercase tracking-wider font-bold text-emerald-600 dark:text-emerald-400">
-                {order.status === 'shipped' ? 'In Transit • With BlueDart Express' : order.status}
+              <span className="text-xs uppercase tracking-wider font-bold text-emerald-600 dark:text-emerald-400 font-mono">
+                Status: {order.status?.toUpperCase()}
               </span>
             </div>
           </div>
@@ -260,7 +207,7 @@ function TrackOrderContent() {
               </div>
               <div className={currentStep >= 2 ? 'text-zinc-950 dark:text-white font-bold' : 'text-zinc-400'}>
                 <span className="font-mono text-[10px] block text-zinc-400">02</span>
-                <span>Quality Check</span>
+                <span>QC & Prep</span>
               </div>
               <div className={currentStep >= 3 ? 'text-zinc-950 dark:text-white font-bold' : 'text-zinc-400'}>
                 <span className="font-mono text-[10px] block text-zinc-400">03</span>
@@ -280,40 +227,56 @@ function TrackOrderContent() {
             </div>
           </div>
 
-          {/* Items in this order */}
-          <div className="space-y-3 pt-3 border-t border-zinc-200 dark:border-zinc-800">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
-              Items in Your AVRONCE Delivery
-            </h4>
-            <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
-              {orderItems.map((item) => (
-                <div key={item.id} className="py-3 first:pt-0 flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    {item.product_image && (
-                      <div className="relative w-14 aspect-[3/4] bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xs overflow-hidden shrink-0">
-                        <Image
-                          src={item.product_image}
-                          alt={item.product_name}
-                          fill
-                          sizes="56px"
-                          className="object-cover"
-                        />
-                      </div>
-                    )}
-                    <div>
-                      <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">{item.product_name}</p>
-                      <p className="text-[11px] text-zinc-500 font-mono">
-                        Size: {item.size} • Qty: {item.quantity}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-xs font-bold text-zinc-950 dark:text-white font-mono">
-                    ₹{Number(item.total).toLocaleString('en-IN')}
-                  </div>
-                </div>
-              ))}
+          {/* Courier and Tracking Info */}
+          <div className="p-4 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+            <div>
+              <span className="text-zinc-500 uppercase tracking-wider block text-[10px]">Courier Partner</span>
+              <p className="text-zinc-900 dark:text-white font-bold mt-0.5">{order.courier || 'BlueDart Express'}</p>
+            </div>
+            <div>
+              <span className="text-zinc-500 uppercase tracking-wider block text-[10px]">AWB / Tracking Number</span>
+              <p className="text-zinc-900 dark:text-white font-mono font-bold mt-0.5">
+                {order.tracking_id || 'Generating upon courier handover...'}
+              </p>
             </div>
           </div>
+
+          {/* Items in this order */}
+          {orderItems.length > 0 && (
+            <div className="space-y-3 pt-3 border-t border-zinc-200 dark:border-zinc-800">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+                Items in Your AVRONCE Delivery
+              </h4>
+              <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                {orderItems.map((item) => (
+                  <div key={item.id} className="py-3 first:pt-0 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      {item.product_image && (
+                        <div className="relative w-14 aspect-[3/4] bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xs overflow-hidden shrink-0">
+                          <Image
+                            src={item.product_image}
+                            alt={item.product_name}
+                            fill
+                            sizes="56px"
+                            className="object-cover"
+                          />
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">{item.product_name}</p>
+                        <p className="text-[11px] text-zinc-500 font-mono">
+                          Size: {item.size} • Qty: {item.quantity}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-xs font-bold text-zinc-950 dark:text-white font-mono">
+                      ₹{Number(item.total).toLocaleString('en-IN')}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Delivery Details */}
           {order.shipping_address && (
@@ -343,7 +306,7 @@ function TrackOrderContent() {
             <div>
               <span className="text-zinc-500 uppercase tracking-wider block text-[10px]">Payment Summary</span>
               <p className="text-zinc-900 dark:text-white font-bold mt-0.5">
-                Total ₹{Number(order.total_amount).toLocaleString('en-IN')} • Paid Online / COD
+                Total ₹{Number(order.total_amount).toLocaleString('en-IN')} • {order.payment_method || 'Online / COD'} ({order.payment_status?.toUpperCase()})
               </p>
             </div>
             <Link

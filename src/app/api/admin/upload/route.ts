@@ -12,7 +12,14 @@ export async function POST(request: Request) {
     }
 
     const uploadDir = path.join(process.cwd(), 'public', 'images', 'uploads');
-    await fs.mkdir(uploadDir, { recursive: true });
+    let isFileSystemWritable = true;
+    try {
+      await fs.mkdir(uploadDir, { recursive: true });
+    } catch (dirErr: any) {
+      if (dirErr.code === 'EROFS' || dirErr.code === 'EPERM' || dirErr.code === 'EACCES') {
+        isFileSystemWritable = false;
+      }
+    }
 
     const uploadedUrls: string[] = [];
 
@@ -30,15 +37,32 @@ export async function POST(request: Request) {
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
 
-      // Safe clean filename
-      const ext = path.extname(file.name) || '.webp';
-      const cleanBase = path.basename(file.name, ext).replace(/[^a-zA-Z0-9-_]/g, '-').toLowerCase();
-      const uniqueName = `${cleanBase}-${Date.now()}${ext}`;
+      if (isFileSystemWritable) {
+        try {
+          // Safe clean filename
+          const ext = path.extname(file.name) || '.webp';
+          const cleanBase = path.basename(file.name, ext).replace(/[^a-zA-Z0-9-_]/g, '-').toLowerCase();
+          const uniqueName = `${cleanBase}-${Date.now()}${ext}`;
 
-      const filePath = path.join(uploadDir, uniqueName);
-      await fs.writeFile(filePath, buffer);
+          const filePath = path.join(uploadDir, uniqueName);
+          await fs.writeFile(filePath, buffer);
 
-      uploadedUrls.push(`/images/uploads/${uniqueName}`);
+          uploadedUrls.push(`/images/uploads/${uniqueName}`);
+          continue;
+        } catch (writeErr: any) {
+          if (writeErr.code === 'EROFS' || writeErr.code === 'EPERM' || writeErr.code === 'EACCES') {
+            isFileSystemWritable = false;
+          } else {
+            throw writeErr;
+          }
+        }
+      }
+
+      // Fallback for serverless read-only filesystem (Vercel / AWS Lambda):
+      // Convert buffer directly into an inline Base64 Data URL so images display everywhere
+      const mimeType = file.type || 'image/jpeg';
+      const base64Data = buffer.toString('base64');
+      uploadedUrls.push(`data:${mimeType};base64,${base64Data}`);
     }
 
     return NextResponse.json({ success: true, urls: uploadedUrls });

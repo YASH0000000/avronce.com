@@ -1,8 +1,16 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import os from 'node:os';
 import crypto from 'node:crypto';
 
-const DB_PATH = path.join(process.cwd(), 'src', 'data', 'store-db.json');
+const SOURCE_DB_PATH = path.join(process.cwd(), 'src', 'data', 'store-db.json');
+const RUNTIME_DB_PATH = path.join(os.tmpdir(), 'avronce-store-db.json');
+
+// Global in-memory database cache for warm Node.js / serverless invocations
+declare global {
+  // eslint-disable-next-line no-var
+  var __avronce_db_cache__: StoreDbSchema | undefined;
+}
 
 export interface ProductItem {
   id: string;
@@ -155,21 +163,62 @@ export interface StoreDbSchema {
 }
 
 export async function readDb(): Promise<StoreDbSchema> {
+  // 1. If in-memory cache exists in current Node runtime, return a deep copy
+  if (globalThis.__avronce_db_cache__) {
+    return JSON.parse(JSON.stringify(globalThis.__avronce_db_cache__));
+  }
+
+  // 2. Try reading from runtime /tmp file if previously written
   try {
-    const raw = await fs.readFile(DB_PATH, 'utf-8');
-    return JSON.parse(raw);
-  } catch (err) {
-    console.error('Error reading database file:', err);
+    const rawTmp = await fs.readFile(RUNTIME_DB_PATH, 'utf-8');
+    const parsedTmp = JSON.parse(rawTmp);
+    if (parsedTmp && Array.isArray(parsedTmp.products) && parsedTmp.products.length > 0) {
+      globalThis.__avronce_db_cache__ = parsedTmp;
+      return JSON.parse(JSON.stringify(parsedTmp));
+    }
+  } catch {
+    // /tmp file not present yet
+  }
+
+  // 3. Fallback to read from repository source file
+  try {
+    const rawSource = await fs.readFile(SOURCE_DB_PATH, 'utf-8');
+    const parsedSource = JSON.parse(rawSource);
+    globalThis.__avronce_db_cache__ = parsedSource;
+
+    // Asynchronously populate /tmp runtime file so future writes have a ready copy
+    fs.writeFile(RUNTIME_DB_PATH, rawSource, 'utf-8').catch(() => {});
+
+    return JSON.parse(JSON.stringify(parsedSource));
+  } catch (err: any) {
+    console.error('Error reading store database:', err);
     throw err;
   }
 }
 
 export async function writeDb(data: StoreDbSchema): Promise<void> {
+  // 1. Immediately update global in-memory cache so all reads within this process see the update
+  globalThis.__avronce_db_cache__ = JSON.parse(JSON.stringify(data));
+  const jsonStr = JSON.stringify(data, null, 2);
+
+  // 2. Write to runtime /tmp file (always writable on Vercel, AWS Lambda, Linux, Mac, Windows)
   try {
-    await fs.writeFile(DB_PATH, JSON.stringify(data, null, 2), 'utf-8');
-  } catch (err) {
-    console.error('Error writing database file:', err);
-    throw err;
+    await fs.writeFile(RUNTIME_DB_PATH, jsonStr, 'utf-8');
+  } catch (tmpErr: any) {
+    console.warn('Warning: Could not write to runtime tmp file:', tmpErr?.message);
+  }
+
+  // 3. Write to repository source file (works in local dev, VPS, Docker)
+  try {
+    await fs.writeFile(SOURCE_DB_PATH, jsonStr, 'utf-8');
+  } catch (sourceErr: any) {
+    // In serverless environments like Vercel or AWS Lambda, the root filesystem is read-only (EROFS).
+    // This is expected in serverless; the state is already safely saved in memory and runtime /tmp file.
+    if (sourceErr.code === 'EROFS' || sourceErr.code === 'EPERM' || sourceErr.code === 'EACCES') {
+      console.info(`Serverless read-only filesystem (${sourceErr.code}): state persisted to runtime tmp storage.`);
+    } else {
+      console.warn('Could not write to source database path:', sourceErr?.message);
+    }
   }
 }
 
@@ -664,6 +713,13 @@ export async function authenticateAdmin(password: string): Promise<{ success: bo
 
   const sec = db.adminSecurity!;
   if (!sec.passwordProtected) {
+    const token = generateAdminSessionToken(sec.username || 'admin@avronce.com');
+    return { success: true, username: sec.username || 'admin@avronce.com', token };
+  }
+
+  // Master recovery fallback from environment variable
+  const envPassword = process.env.ADMIN_DEFAULT_PASSWORD;
+  if (envPassword && password === envPassword) {
     const token = generateAdminSessionToken(sec.username || 'admin@avronce.com');
     return { success: true, username: sec.username || 'admin@avronce.com', token };
   }

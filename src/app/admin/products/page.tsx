@@ -289,12 +289,14 @@ export default function AdminProductsPage() {
       setDeletingId(id);
       const res = await fetch(`/api/admin/products?id=${id}`, { method: 'DELETE' });
       if (res.ok) {
+        setProducts((prev) => prev.filter((p) => p.id !== id));
         await fetchProducts();
       } else {
-        alert('Failed to delete product');
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || 'Failed to delete product');
       }
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      alert(err?.message || 'Failed to delete product');
     } finally {
       setDeletingId(null);
     }

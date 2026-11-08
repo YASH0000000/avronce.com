@@ -415,13 +415,13 @@ export default function AdminSettingsPage() {
               Razorpay Key Secret (Server-Side)
             </label>
             <input
-              type="password"
+              type="text"
               readOnly
-              value="hwC5bLIiU0FivkmjKpHeHYXD"
-              className="w-full px-3 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-zinc-400 font-mono text-xs"
+              value="•••••••••••••••••••••••• (Encrypted in Server Env)"
+              className="w-full px-3 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-emerald-400 font-mono text-xs select-none"
             />
             <p className="text-[10px] text-zinc-500 mt-1">
-              Stored securely in server environment (.env.local). Never exposed to browser.
+              Stored securely in server environment (RAZORPAY_KEY_SECRET). Never exposed to browser.
             </p>
           </div>
         </div>

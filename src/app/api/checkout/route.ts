@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createDbOrder, getDbProducts } from '@/lib/db';
-import { razorpayInstance } from '@/lib/razorpay';
+import { getRazorpayInstance, getRazorpayKeys } from '@/lib/razorpay';
 
 export async function POST(request: Request) {
   try {
@@ -75,7 +75,7 @@ export async function POST(request: Request) {
     const taxAmount = Math.round(taxableAmount * 0.05);
     const totalAmount = taxableAmount + shippingFee;
 
-    const key_id = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID || 'rzp_live_TwZ6XcDwwdwirL';
+    const { key_id } = getRazorpayKeys();
 
     // 3. Create persistent Order Record in Central Database FIRST
     const isCod = paymentMethod === 'cod';
@@ -113,7 +113,7 @@ export async function POST(request: Request) {
     // 5. Handle Razorpay Online Payment Initiation
     const amountInPaise = Math.round(totalAmount * 100);
 
-    // If sandbox instant simulation requested
+    // If sandbox instant simulation explicitly requested (demo button)
     if (instantSimulate) {
       const simulatedOrderId = `order_sim_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
       orderRecord.razorpay_order_id = simulatedOrderId;
@@ -132,7 +132,8 @@ export async function POST(request: Request) {
     }
 
     try {
-      const rzpOrder = await razorpayInstance.orders.create({
+      const razorpay = getRazorpayInstance();
+      const rzpOrder = await razorpay.orders.create({
         amount: amountInPaise,
         currency: 'INR',
         receipt: orderRecord.order_number,
@@ -158,21 +159,19 @@ export async function POST(request: Request) {
         isSimulated: false,
       });
     } catch (rzpErr: any) {
-      console.warn('Razorpay order creation fallback triggered:', rzpErr?.message || rzpErr);
-      const simulatedOrderId = `order_sim_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-      orderRecord.razorpay_order_id = simulatedOrderId;
+      console.error('Razorpay order creation failed:', rzpErr);
+      const errorMsg =
+        rzpErr?.error?.description ||
+        rzpErr?.message ||
+        'Failed to initialize secure payment session';
 
-      return NextResponse.json({
-        success: true,
-        orderId: orderRecord.id,
-        orderNumber: orderRecord.order_number,
-        trackingToken: orderRecord.tracking_token,
-        razorpayOrderId: simulatedOrderId,
-        amount: amountInPaise,
-        currency: 'INR',
-        key: key_id,
-        isSimulated: true,
-      });
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Razorpay Error: ${errorMsg}. Please verify your credentials or select Cash on Delivery.`,
+        },
+        { status: 502 }
+      );
     }
   } catch (error: any) {
     console.error('Checkout error:', error);

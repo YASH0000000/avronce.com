@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { razorpayInstance } from '@/lib/razorpay';
+import { getRazorpayInstance, getRazorpayKeys } from '@/lib/razorpay';
 
 export async function POST(request: Request) {
   try {
@@ -10,13 +10,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
     }
 
-    const key_id = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID || 'rzp_live_TwZ6XcDwwdwirL';
+    const { key_id } = getRazorpayKeys();
 
     // Amount in paise (1 INR = 100 paise)
     const amountInPaise = Math.round(Number(amount) * 100);
 
     try {
-      // Attempt official Razorpay Orders API
+      const razorpay = getRazorpayInstance();
       const options = {
         amount: amountInPaise,
         currency: 'INR',
@@ -24,27 +24,22 @@ export async function POST(request: Request) {
         notes: notes || { store: 'AVRONCE ATELIER' },
       };
 
-      const order = await razorpayInstance.orders.create(options);
+      const order = await razorpay.orders.create(options);
 
       return NextResponse.json({
         id: order.id,
         amount: order.amount,
         currency: order.currency,
         key: key_id,
+        isSimulated: false,
       });
     } catch (razorpayErr: any) {
-      console.warn('Razorpay API sandbox fallback triggered:', razorpayErr.message || razorpayErr);
-
-      // Seamless sandbox mock order generation for local development / test credentials
-      const simulatedOrderId = `order_sim_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-
-      return NextResponse.json({
-        id: simulatedOrderId,
-        amount: amountInPaise,
-        currency: 'INR',
-        key: key_id,
-        isSimulated: true,
-      });
+      console.error('Razorpay API order creation failed:', razorpayErr);
+      const errorMsg =
+        razorpayErr?.error?.description ||
+        razorpayErr?.message ||
+        'Razorpay order creation failed';
+      return NextResponse.json({ error: errorMsg }, { status: 502 });
     }
   } catch (error: any) {
     console.error('Error creating Razorpay order:', error);

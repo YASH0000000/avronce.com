@@ -1,15 +1,37 @@
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 
-const key_id = process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_live_TwZ6XcDwwdwirL';
-const key_secret = process.env.RAZORPAY_KEY_SECRET || 'hwC5bLIiU0FivkmjKpHeHYXD';
-const webhook_secret = process.env.RAZORPAY_WEBHOOK_SECRET || 'avronce_live_webhook_secret_2026';
+/**
+ * Clean and sanitize environment keys, removing any surrounding quotes or whitespace
+ */
+function cleanEnv(value: string | undefined): string {
+  if (!value) return '';
+  return value.trim().replace(/^["']|["']$/g, '');
+}
 
-// Server-side Razorpay SDK instance
-export const razorpayInstance = new Razorpay({
-  key_id,
-  key_secret,
-});
+export function getRazorpayKeys() {
+  const envKeyId = cleanEnv(process.env.RAZORPAY_KEY_ID) || cleanEnv(process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID);
+  const envKeySecret = cleanEnv(process.env.RAZORPAY_KEY_SECRET);
+  const envWebhookSecret = cleanEnv(process.env.RAZORPAY_WEBHOOK_SECRET);
+
+  const key_id = envKeyId || 'rzp_live_TwZ6XcDwwdwirL';
+  const key_secret = envKeySecret || 'hwC5bLIiU0FivkmjKpHeHYXD';
+  const webhook_secret = envWebhookSecret || 'avronce_live_webhook_secret_2026';
+
+  return { key_id, key_secret, webhook_secret };
+}
+
+// Server-side Razorpay SDK instance factory
+export function getRazorpayInstance(): Razorpay {
+  const { key_id, key_secret } = getRazorpayKeys();
+  return new Razorpay({
+    key_id,
+    key_secret,
+  });
+}
+
+// Default instance for direct imports
+export const razorpayInstance = getRazorpayInstance();
 
 /**
  * Verify Razorpay HMAC-SHA256 signature for client checkout completion
@@ -31,6 +53,7 @@ export function verifyRazorpaySignature({
   }
 
   try {
+    const { key_secret } = getRazorpayKeys();
     const text = `${orderId}|${paymentId}`;
     const generatedSignature = crypto
       .createHmac('sha256', key_secret)
@@ -50,17 +73,20 @@ export function verifyRazorpaySignature({
 export function verifyRazorpayWebhookSignature({
   rawBody,
   signature,
-  secret = webhook_secret,
+  secret,
 }: {
   rawBody: string;
   signature: string;
   secret?: string;
 }): boolean {
-  if (!rawBody || !signature || !secret) return false;
+  if (!rawBody || !signature) return false;
 
   try {
+    const activeSecret = secret || getRazorpayKeys().webhook_secret;
+    if (!activeSecret) return false;
+
     const expectedSignature = crypto
-      .createHmac('sha256', secret)
+      .createHmac('sha256', activeSecret)
       .update(rawBody)
       .digest('hex');
 

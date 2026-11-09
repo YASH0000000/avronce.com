@@ -71,10 +71,21 @@ export default function CheckoutPage() {
       }
       const existing = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
       if (existing) {
+        if (window.Razorpay) {
+          setRazorpayReady(true);
+          return resolve(true);
+        }
         existing.addEventListener('load', () => {
           setRazorpayReady(true);
           resolve(true);
         });
+        existing.addEventListener('error', () => resolve(false));
+        setTimeout(() => {
+          if (window.Razorpay) {
+            setRazorpayReady(true);
+            resolve(true);
+          }
+        }, 300);
         return;
       }
       const script = document.createElement('script');
@@ -158,8 +169,8 @@ export default function CheckoutPage() {
         return;
       }
 
-      // 3. Instant Sandbox Simulation Mode
-      if (instantSimulate || checkoutData.isSimulated) {
+      // 3. Instant Sandbox Simulation Mode (Only when explicitly triggered)
+      if (instantSimulate) {
         const simPaymentId = `pay_sim_${Date.now()}`;
         const simSignature = 'simulated_signature_avronce';
 
@@ -197,15 +208,17 @@ export default function CheckoutPage() {
         }
       }
 
-      // 4. Standard Razorpay Modal
+      // 4. Standard Razorpay Modal (Always opened for online payment)
       await loadRazorpaySdk();
 
       if (!window.Razorpay) {
-        throw new Error('Razorpay Checkout SDK is loading. Please check your connection or retry.');
+        throw new Error('Razorpay Checkout SDK is loading. Please check your internet connection and retry.');
       }
 
+      const activeRazorpayKey = checkoutData.key || clientKeyId || 'rzp_live_TwZ6XcDwwdwirL';
+
       const options = {
-        key: checkoutData.key || clientKeyId,
+        key: activeRazorpayKey,
         amount: checkoutData.amount,
         currency: checkoutData.currency || 'INR',
         name: 'AVRONCE',
@@ -291,7 +304,13 @@ export default function CheckoutPage() {
         setLoading(false);
       });
 
-      rzp.open();
+      try {
+        rzp.open();
+      } catch (openErr: any) {
+        console.error('Failed to open Razorpay modal:', openErr);
+        setErrorMsg('Could not open Razorpay payment window. Please allow popups or try again.');
+        setLoading(false);
+      }
     } catch (err: any) {
       setErrorMsg(err.message || 'Payment processing encountered an unexpected error.');
       setLoading(false);

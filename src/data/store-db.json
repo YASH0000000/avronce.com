@@ -304,7 +304,7 @@
       "createdAt": "2026-06-05T17:33:22+05:30",
       "publishedAt": "2026-06-06T05:26:24+05:30",
       "status": "published",
-      "stock": 40
+      "stock": 38
     },
     {
       "id": "10487190454559",
@@ -5631,6 +5631,159 @@
   ],
   "orders": [
     {
+      "id": "d8c1d86d-6606-4695-b3bc-1ab099b1eeaa",
+      "order_number": "AVR-261109-41670",
+      "status": "confirmed",
+      "payment_status": "pending",
+      "payment_method": "Cash on Delivery (COD)",
+      "razorpay_order_id": "",
+      "razorpay_payment_id": "",
+      "razorpay_signature": "",
+      "tracking_token": "trk_2d8efdf3a8f8a334d18c0b125b08b125",
+      "tracking_id": "",
+      "courier": "BlueDart Express",
+      "customer": {
+        "name": "AVRONCE",
+        "email": "avronce@gmail.com",
+        "phone": "9999999999"
+      },
+      "shipping_address": {
+        "fullName": "AVRONCE",
+        "email": "avronce@gmail.com",
+        "phone": "9999999999",
+        "addressLine1": "PIMPRI CHINCHWAD",
+        "addressLine2": "",
+        "city": "PUNE",
+        "state": "Maharashtra",
+        "postalCode": "411029",
+        "country": "India"
+      },
+      "items": [
+        {
+          "id": "10522812842271-52596229210399-41",
+          "productId": "10522812842271",
+          "name": "Double Buckle Strap Platform Mary Jane Shoes in Chocolate Brown",
+          "slug": "double-buckle-strap-platform-mary-jane-shoes-in-chocolate-brown",
+          "size": "41",
+          "price": 1549,
+          "quantity": 1,
+          "image": "/images/products/prod_10522812842271_1.jpg",
+          "colorName": "Standard"
+        }
+      ],
+      "subtotal": 1549,
+      "discount_amount": 0,
+      "coupon_code": "",
+      "shipping_fee": 0,
+      "tax_amount": 77,
+      "total_amount": 1549,
+      "notes": "",
+      "created_at": "2026-11-09T05:47:27.299Z",
+      "updated_at": "2026-11-09T05:47:27.299Z"
+    },
+    {
+      "id": "b1e7ccc2-a977-40d3-9925-039735660fb5",
+      "order_number": "AVR-261109-77288",
+      "status": "confirmed",
+      "payment_status": "pending",
+      "payment_method": "Cash on Delivery (COD)",
+      "razorpay_order_id": "",
+      "razorpay_payment_id": "",
+      "razorpay_signature": "",
+      "tracking_token": "trk_32d387ff2d936b0abe1a91afcc274280",
+      "tracking_id": "",
+      "courier": "BlueDart Express",
+      "customer": {
+        "name": "AVRONCE",
+        "email": "avronce@gmail.com",
+        "phone": "9999999999"
+      },
+      "shipping_address": {
+        "fullName": "AVRONCE",
+        "email": "avronce@gmail.com",
+        "phone": "9999999999",
+        "addressLine1": "PIMPRI CHINCHWAD",
+        "addressLine2": "",
+        "city": "PUNE",
+        "state": "Maharashtra",
+        "postalCode": "411029",
+        "country": "India"
+      },
+      "items": [
+        {
+          "id": "10522812842271-52596229013791-35",
+          "productId": "10522812842271",
+          "name": "Double Buckle Strap Platform Mary Jane Shoes in Chocolate Brown",
+          "slug": "double-buckle-strap-platform-mary-jane-shoes-in-chocolate-brown",
+          "size": "35",
+          "price": 1549,
+          "quantity": 1,
+          "image": "/images/products/prod_10522812842271_1.jpg",
+          "colorName": "Standard"
+        }
+      ],
+      "subtotal": 1549,
+      "discount_amount": 0,
+      "coupon_code": "",
+      "shipping_fee": 0,
+      "tax_amount": 77,
+      "total_amount": 1549,
+      "notes": "",
+      "created_at": "2026-11-09T05:47:07.504Z",
+      "updated_at": "2026-11-09T05:47:07.504Z"
+    },
+    {
+      "id": "a34cd41e-b67f-4d0e-8675-860405675a53",
+      "order_number": "AVR-261109-19451",
+      "status": "pending_payment",
+      "payment_status": "pending",
+      "payment_method": "Razorpay Secure Online",
+      "razorpay_order_id": "",
+      "razorpay_payment_id": "",
+      "razorpay_signature": "",
+      "tracking_token": "trk_7b060a52021becc0a0083ffbb12d4be4",
+      "tracking_id": "",
+      "courier": "BlueDart Express",
+      "customer": {
+        "name": "AVRONCE",
+        "email": "avronce@gmail.com",
+        "phone": "9999999999"
+      },
+      "shipping_address": {
+        "fullName": "AVRONCE",
+        "email": "avronce@gmail.com",
+        "phone": "9999999999",
+        "addressLine1": "PIMPRI CHINCHWAD",
+        "addressLine2": "",
+        "city": "PUNE",
+        "state": "Maharashtra",
+        "postalCode": "411029",
+        "country": "India"
+      },
+      "items": [
+        {
+          "id": "10522812842271-52596229013791-35",
+          "productId": "10522812842271",
+          "name": "Double Buckle Strap Platform Mary Jane Shoes in Chocolate Brown",
+          "slug": "double-buckle-strap-platform-mary-jane-shoes-in-chocolate-brown",
+          "size": "35",
+          "price": 1549,
+          "quantity": 1,
+          "image": "/images/products/prod_10522812842271_1.jpg",
+          "colorName": "Standard"
+        }
+      ],
+      "subtotal": 1549,
+      "discount_amount": 0,
+      "coupon_code": "",
+      "shipping_fee": 0,
+      "tax_amount": 77,
+      "total_amount": 1549,
+      "notes": "",
+      "created_at": "2026-11-09T05:46:25.379Z",
+      "updated_at": "2026-11-09T05:46:25.379Z"
+    },
+    {
       "id": "b98f6593-fdbd-40d8-bca1-c14abbb0cc54",
       "order_number": "AVR-261109-33564",
       "status": "pending_payment",
@@ -6360,8 +6513,8 @@
       "name": "AVRONCE",
       "email": "avronce@gmail.com",
       "phone": "9999999999",
-      "ordersCount": 1,
-      "totalSpent": 1549,
+      "ordersCount": 4,
+      "totalSpent": 6196,
       "city": "PUNE",
       "joinedDate": "2026-11-09"
     },

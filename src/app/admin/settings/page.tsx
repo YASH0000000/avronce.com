@@ -377,23 +377,23 @@ export default function AdminSettingsPage() {
         </form>
       </div>
 
-      {/* SECTION 2: RAZORPAY LIVE INTEGRATION STATUS */}
+      {/* SECTION 2: RAZORPAY INTEGRATION STATUS */}
       <div className="p-6 rounded-2xl bg-zinc-900 border border-zinc-800 space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400">
+            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400">
               <CreditCard className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-white">Razorpay Payments Gateway (Live Mode)</h2>
+              <h2 className="text-base font-bold text-white">Razorpay Payments Gateway</h2>
               <p className="text-xs text-zinc-400">
-                Connected securely using server-side environment variables. Secret key is strictly protected.
+                Connected using server-side environment variables. Secret key is strictly protected.
               </p>
             </div>
           </div>
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            LIVE KEY CONFIGURED
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 uppercase">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+            {process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID?.startsWith('rzp_live') ? 'LIVE GATEWAY ACTIVE' : 'TEMPORARY / TEST CREDENTIALS'}
           </span>
         </div>
 
@@ -405,7 +405,7 @@ export default function AdminSettingsPage() {
             <input
               type="text"
               readOnly
-              value="rzp_live_TwZ6XcDwwdwirL"
+              value={process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_live_TwZ6XcDwwdwirL"}
               className="w-full px-3 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-amber-400 font-mono text-xs select-all"
             />
           </div>

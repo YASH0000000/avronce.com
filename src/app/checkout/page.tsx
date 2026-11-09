@@ -58,7 +58,7 @@ export default function CheckoutPage() {
   const [razorpayReady, setRazorpayReady] = useState(false);
 
   // Determine gateway environment from client or fallback
-  const clientKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_51AvronceDevKey';
+  const clientKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_live_TwZ6XcDwwdwirL';
   const isLiveGateway = clientKeyId.startsWith('rzp_live');
 
   // Load Razorpay Checkout Script safely

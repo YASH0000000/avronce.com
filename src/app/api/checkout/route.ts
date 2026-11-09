@@ -75,7 +75,7 @@ export async function POST(request: Request) {
     const taxAmount = Math.round(taxableAmount * 0.05);
     const totalAmount = taxableAmount + shippingFee;
 
-    const key_id = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID || 'rzp_test_51AvronceDevKey';
+    const key_id = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID || 'rzp_live_TwZ6XcDwwdwirL';
 
     // 3. Create persistent Order Record in Central Database FIRST
     const isCod = paymentMethod === 'cod';

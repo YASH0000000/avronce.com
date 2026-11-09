@@ -1,8 +1,8 @@
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 
-const key_id = process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_51AvronceDevKey';
-const key_secret = process.env.RAZORPAY_KEY_SECRET || 'dev_secret_avronce_testing_9921';
+const key_id = process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_live_TwZ6XcDwwdwirL';
+const key_secret = process.env.RAZORPAY_KEY_SECRET || 'hwC5bLIiU0FivkmjKpHeHYXD';
 const webhook_secret = process.env.RAZORPAY_WEBHOOK_SECRET || 'avronce_live_webhook_secret_2026';
 
 // Server-side Razorpay SDK instance

@@ -5,9 +5,9 @@
 1. **Environment Variables Configuration**:
    Configure these variables in your hosting provider (Vercel, AWS, Railway, etc.):
    ```bash
-   NEXT_PUBLIC_RAZORPAY_KEY_ID=rzp_live_TwZ6XcDwwdwirL
-   RAZORPAY_KEY_ID=rzp_live_TwZ6XcDwwdwirL
-   RAZORPAY_KEY_SECRET=hwC5bLIiU0FivkmjKpHeHYXD
+   NEXT_PUBLIC_RAZORPAY_KEY_ID=your_razorpay_key_id
+   RAZORPAY_KEY_ID=your_razorpay_key_id
+   RAZORPAY_KEY_SECRET=your_razorpay_key_secret
    RAZORPAY_WEBHOOK_SECRET=your_configured_webhook_secret
    ADMIN_SESSION_SECRET=avronce_super_secure_admin_session_key_2026
    ADMIN_DEFAULT_PASSWORD=admin

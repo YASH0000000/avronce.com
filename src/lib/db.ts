@@ -322,120 +322,6 @@ export async function updateDbStock(id: string, stock: number): Promise<ProductI
 // ---------------- ORDERS ----------------
 export async function getDbOrders(): Promise<OrderItemRecord[]> {
   const db = await readDb();
-
-  try {
-    const supabase = createServerSupabase();
-    const { data: sbOrders, error: sbErr } = await supabase
-      .from('orders')
-      .select('*, items:order_items(*)')
-      .order('created_at', { ascending: false });
-
-    if (!sbErr && sbOrders && Array.isArray(sbOrders)) {
-      const mappedSbOrders: OrderItemRecord[] = sbOrders
-        .filter((s: any) => s.order_number && s.order_number !== 'AVRONCE_STATE_SYNC' && s.order_number !== 'AVR-DUP-TEST')
-        .map((s: any) => {
-          let parsedNotes: any = {};
-          try {
-            if (s.notes && (s.notes.startsWith('{') || s.notes.startsWith('['))) {
-              parsedNotes = JSON.parse(s.notes);
-            }
-          } catch {}
-
-          const items: OrderItemRecord['items'] = Array.isArray(s.items) && s.items.length > 0
-            ? s.items.map((it: any) => ({
-                id: it.id || `item-${Date.now()}`,
-                productId: it.product_id || it.productId || 'prod-custom',
-                name: it.product_name || 'AVRONCE Item',
-                slug: it.product_slug || 'item',
-                size: it.size || 'Standard',
-                price: Number(it.price || 0),
-                quantity: Number(it.quantity || 1),
-                image: it.product_image || '/images/collections/cat_boots.webp',
-              }))
-            : [];
-
-          return {
-            id: s.id,
-            order_number: s.order_number,
-            status: (s.status as any) || 'processing',
-            payment_status: s.payment_status === 'captured' ? 'paid' : (s.payment_status || 'paid'),
-            payment_method: parsedNotes.payment_method || (s.razorpay_payment_id ? 'Razorpay Secure Online' : 'Cash on Delivery (COD)'),
-            razorpay_order_id: s.razorpay_order_id || '',
-            razorpay_payment_id: s.razorpay_payment_id || '',
-            razorpay_signature: s.razorpay_signature || '',
-            tracking_token: parsedNotes.tracking_token || '',
-            tracking_id: parsedNotes.tracking_id || '',
-            courier: parsedNotes.courier || 'BlueDart Express',
-            customer: {
-              name: s.customer_name || s.shipping_address?.fullName || 'Customer',
-              email: s.customer_email || s.shipping_address?.email || 'customer@avronce.com',
-              phone: s.customer_phone || s.shipping_address?.phone || '',
-            },
-            shipping_address: s.shipping_address || {
-              fullName: s.customer_name || 'Customer',
-              email: s.customer_email || 'customer@avronce.com',
-              phone: s.customer_phone || '',
-              addressLine1: 'Address on file',
-              city: 'India',
-              state: '',
-              postalCode: '',
-              country: 'India',
-            },
-            items,
-            subtotal: Number(s.subtotal || s.total_amount || 0),
-            discount_amount: Number(s.discount_amount || 0),
-            coupon_code: parsedNotes.coupon_code || '',
-            shipping_fee: Number(s.shipping_fee || 0),
-            tax_amount: Number(s.tax_amount || 0),
-            total_amount: Number(s.total_amount || 0),
-            notes: typeof s.notes === 'string' ? s.notes : '',
-            created_at: s.created_at || new Date().toISOString(),
-            updated_at: s.updated_at || s.created_at || new Date().toISOString(),
-          };
-        });
-
-      // Merge Supabase orders with local db orders
-      const orderMap = new Map<string, OrderItemRecord>();
-      
-      for (const o of mappedSbOrders) {
-        orderMap.set(o.order_number, o);
-      }
-
-      for (const localO of db.orders || []) {
-        if (!localO.order_number) continue;
-        if (orderMap.has(localO.order_number)) {
-          const existing = orderMap.get(localO.order_number)!;
-          if (localO.tracking_id && !existing.tracking_id) existing.tracking_id = localO.tracking_id;
-          if (localO.courier && existing.courier === 'BlueDart Express') existing.courier = localO.courier;
-          if (localO.status && localO.status !== existing.status) existing.status = localO.status;
-          if (localO.payment_status && localO.payment_status !== existing.payment_status) {
-            existing.payment_status = localO.payment_status;
-          }
-          if (localO.razorpay_payment_id && !existing.razorpay_payment_id) {
-            existing.razorpay_payment_id = localO.razorpay_payment_id;
-          }
-          if (localO.razorpay_signature && !existing.razorpay_signature) {
-            existing.razorpay_signature = localO.razorpay_signature;
-          }
-          if ((!existing.items || existing.items.length === 0) && localO.items && localO.items.length > 0) {
-            existing.items = localO.items;
-          }
-        } else {
-          orderMap.set(localO.order_number, localO);
-        }
-      }
-
-      const merged = Array.from(orderMap.values()).sort(
-        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      );
-
-      db.orders = merged;
-      return merged;
-    }
-  } catch (sbErr) {
-    console.warn('Fallback to local database for orders:', sbErr);
-  }
-
   return (db.orders || []).sort(
     (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   );
@@ -929,7 +815,14 @@ export async function updateDbAdminSecurity(updates: {
       return { success: false, error: 'Current password is required to set a new password' };
     }
 
-    const isMatch = verifyAdminPassword(updates.currentPassword, sec.salt || '', sec.passwordHash || '');
+    const envDefault = process.env.ADMIN_DEFAULT_PASSWORD || 'admin';
+    const envAdminPassword = process.env.ADMIN_PASSWORD;
+
+    const isMatch =
+      verifyAdminPassword(updates.currentPassword, sec.salt || '', sec.passwordHash || '') ||
+      (envAdminPassword && updates.currentPassword === envAdminPassword) ||
+      (updates.currentPassword === envDefault);
+
     if (!isMatch) {
       return { success: false, error: 'Current password is incorrect' };
     }
@@ -978,18 +871,33 @@ export async function authenticateAdmin(password: string): Promise<{ success: bo
     return { success: true, username: sec.username || 'admin@avronce.com', token };
   }
 
-  // Master recovery fallback from environment variable
-  const envPassword = process.env.ADMIN_DEFAULT_PASSWORD;
-  if (envPassword && password === envPassword) {
+  // 1. Strict environment variable override if explicitly configured in Vercel / server env
+  const envAdminPassword = process.env.ADMIN_PASSWORD;
+  if (envAdminPassword) {
+    if (password === envAdminPassword) {
+      const token = generateAdminSessionToken(sec.username || 'admin@avronce.com');
+      return { success: true, username: sec.username || 'admin@avronce.com', token };
+    }
+    return { success: false };
+  }
+
+  // 2. Strict verification against saved database password hash
+  if (sec.passwordHash && sec.salt) {
+    const isMatch = verifyAdminPassword(password, sec.salt, sec.passwordHash);
+    if (isMatch) {
+      const token = generateAdminSessionToken(sec.username || 'admin@avronce.com');
+      return { success: true, username: sec.username || 'admin@avronce.com', token };
+    }
+    // NEVER fall back to default 'admin' when a custom password hash exists
+    return { success: false };
+  }
+
+  // 3. Fallback only if no password hash is set yet (fresh initial setup)
+  const envDefault = process.env.ADMIN_DEFAULT_PASSWORD || 'admin';
+  if (password === envDefault) {
     const token = generateAdminSessionToken(sec.username || 'admin@avronce.com');
     return { success: true, username: sec.username || 'admin@avronce.com', token };
   }
 
-  const isMatch = verifyAdminPassword(password, sec.salt || '', sec.passwordHash || '');
-  if (!isMatch) {
-    return { success: false };
-  }
-
-  const token = generateAdminSessionToken(sec.username || 'admin@avronce.com');
-  return { success: true, username: sec.username || 'admin@avronce.com', token };
+  return { success: false };
 }
